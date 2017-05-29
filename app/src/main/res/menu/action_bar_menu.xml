@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_bar_menu_settings"
+        android:icon="@drawable/common_google_signin_btn_icon_light"
+        android:orderInCategory="1"
+        android:title="Settings"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_bar_menu_sync"
+        android:orderInCategory="2"
+        android:icon="@drawable/common_google_signin_btn_icon_light"
+        android:title="Sync"
+        app:showAsAction="always" />
+
+</menu>

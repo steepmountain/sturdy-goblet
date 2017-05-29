@@ -1,16 +1,17 @@
 package com.example.ruben.turapp;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     // Request-koder for permissions
     private static final int REQUEST_CODE_FINE_LOCATION = 0;
@@ -38,6 +39,31 @@ public class MainActivity extends Activity {
         transaction.commit();
     }
 
-    // TODO: Run all fragments through MainActivity function
+    // Lager menyen til action bar
+    @Override
+    public boolean onCreateOptionsMenu( Menu menu )
+    {
+        getMenuInflater().inflate( R.menu.action_bar_menu, menu );
+        return true;
+    }
+
+    // Håndterer meny actions
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_bar_menu_sync:
+                // TODO: attempt to sync the SQLite DB with the API
+                return true;
+
+            case R.id.action_bar_menu_settings:
+                // TODO: go to settings fragment
+                return true;
+
+
+            default:
+                return true;
+
+        }
+    }
 
 }

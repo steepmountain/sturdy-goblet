@@ -42,7 +42,7 @@ public class TurListeFragment extends Fragment {
         FloatingActionButton btnFab = (FloatingActionButton) fragment.findViewById(R.id.fragment_tur_liste_fab);
         btnFab.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Fragment fragment = new DetaljertTurFragment();
+                Fragment fragment = new NyTurFragment();
                 FragmentManager fm = getFragmentManager();
                 FragmentTransaction transaction = fm.beginTransaction().addToBackStack(null);
                 transaction.replace(R.id.activity_main_content_fragment, fragment);
