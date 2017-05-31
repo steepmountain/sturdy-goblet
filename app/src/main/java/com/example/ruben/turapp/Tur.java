@@ -1,9 +1,8 @@
 package com.example.ruben.turapp;
 
 import android.database.Cursor;
-import android.graphics.Bitmap;
 
-import com.example.ruben.turapp.Database.TurDbAdapter;
+import com.example.ruben.turapp.database.TurDbAdapter;
 
 import java.io.Serializable;
 import java.util.ArrayList;

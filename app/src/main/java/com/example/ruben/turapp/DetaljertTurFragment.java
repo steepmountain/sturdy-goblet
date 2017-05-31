@@ -1,10 +1,13 @@
 package com.example.ruben.turapp;
 
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,6 +25,14 @@ public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback
     private GoogleMap mMap;
     private LatLng mPosition;
     private Tur mTur;
+
+    private TextView tvNavn;
+    private TextView tvBeskrivelse;
+    private TextView tvTurType;
+    private TextView tvLatitude;
+    private TextView tvLongitude;
+    private TextView tvMoh;
+    private ImageView ivBilde;
 
     public DetaljertTurFragment() {
         // Required empty public constructor
@@ -47,6 +58,29 @@ public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback
                 mPosition = new LatLng(mTur.getLatitude(), mTur.getLongitude());
             }
         }
+
+        // Populerer fragmentet med tekst
+        tvNavn = (TextView) fragment.findViewById(R.id.fragment_detaljert_tur_navn);
+        tvNavn.setText(mTur.getNavn());
+
+        tvBeskrivelse = (TextView) fragment.findViewById(R.id.fragment_detaljert_tur_beskrivelse);
+        tvBeskrivelse.setText(mTur.getBeskrivelse());
+
+        tvTurType = (TextView) fragment.findViewById(R.id.fragment_detaljert_tur_turType);
+        tvTurType.setText(mTur.getType());
+
+        tvLatitude = (TextView) fragment.findViewById(R.id.fragment_detaljert_tur_latitude);
+        tvLatitude.setText(mTur.getLatitude() + "");
+
+        tvLongitude = (TextView) fragment.findViewById(R.id.fragment_detaljert_tur_longitude);
+        tvLongitude.setText(mTur.getLongitude() + "");
+
+        tvMoh = (TextView) fragment.findViewById(R.id.fragment_detaljert_tur_moh);
+        tvMoh.setText(mTur.getMoh() + "");
+
+        ivBilde = (ImageView) fragment.findViewById(R.id.fragment_detaljert_tur_bilde);
+        // TODO: hent bilde
+
         return fragment;
     }
 

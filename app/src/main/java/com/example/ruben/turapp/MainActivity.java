@@ -28,7 +28,10 @@ public class MainActivity extends AppCompatActivity {
         * 3.  LocationService for siste location
         * 4. Sjekk at mBildePath eksisterer i minnet
         * 4. Hent Tur fra MySQL med REST-API. Sorter etter hvor langt unna currPos de er.
-        * 5. Sync SQLite til MySQL.
+        * 5. Sync SQLite til MySQL. SyncFragment
+        * 6. InstillingerFragment - logininfo og default zoom value
+        * 6. Hent turtyper fra MySQL rest api
+        * 7. Legg med SQL scirpt
         *
          */
 

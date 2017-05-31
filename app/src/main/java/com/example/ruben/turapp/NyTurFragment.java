@@ -1,10 +1,8 @@
 package com.example.ruben.turapp;
 
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,14 +22,22 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.Toast;
 
-import com.example.ruben.turapp.Database.TurDbAdapter;
+import com.example.ruben.turapp.database.TurDbAdapter;
+import com.example.ruben.turapp.restklient.GetResponseCallback;
+import com.example.ruben.turapp.restklient.NetworkHelper;
+import com.example.ruben.turapp.restklient.RestApi;
+import com.example.ruben.turapp.restklient.RestApi.*;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 
 /**
@@ -50,32 +56,25 @@ public class NyTurFragment extends Fragment {
     private TextInputLayout tvBeskrivelseLabel;
     private TextInputEditText etBeskrivelse;
     private TextInputLayout tvTurTypeLabel;
+    private TextInputEditText etTurTyrpe;
     private Spinner spinTurType;
     private Button btnKamera;
     private Button btnFilvelger;
     private Button btnSubmit;
 
-    // Turtyper.
-    // TODO: gjør til Map<key, navn>;
-    private static String[] TURTYPER = {
-            "Utsiktspunkt",
-            "Husmannsplass",
-            "Fjelltopp",
-            "Badeplass"
-    };
 
     private static final String TITTEL = "Ny tur";
     private static final String BILDE_UGYLDIG_MESSAGE = "Bilde er ikke gyldig. Prøv igjen!";
     private static final String FIL_UGYLDIG_MESSAGE = "Kunne ikke lage en fil for bilde. Prøv igjen!";
-    private static final String INSERT_FAIL_MESSAGE = "Noe gikk galt med databasen. Prøv igjen!";
-    private static final String INSERT_OK_MESSAGE = "Turen er lagt inn med ID ";
-    private static final long DB_INSERT_OK = -1;
+    private static final String DB_INSERT_FAIL_MESSAGE = "Noe gikk galt med databasen. Prøv igjen!";
+    private static final String DB_INSERT_OK_MESSAGE = "Turen er lagt inn med ID ";
     private static final int MAX_NAVN_LENGDE = 200;
     private static final int MAX_BESKRIVELSE_LENGDE = 1000;
+    private static final int MAX_TURTYPE_LENGDE = 200;
     private static final int VELG_BILDE_REQUEST_CODE = 0;
     private static final int TA_BILDE_REQUEST_CODE = 1;
-    private static final int RESULT_OK = -1;
-    private static final int INSERT_OK = 0;
+    private static final int ACTIVITY_RESULT_OK = -1;
+    private static final int DB_INSERT_OK = 0;
 
 
 
@@ -143,10 +142,7 @@ public class NyTurFragment extends Fragment {
 
         // setter opp dropdown spinner
         tvTurTypeLabel = (TextInputLayout) fragment.findViewById(R.id.fragment_ny_kunde_label_turtype);
-        spinTurType = (Spinner) fragment.findViewById(R.id.fragment_ny_kunde_spinner_turtype);
-        ArrayAdapter<String> mSpinnerAdapter = new ArrayAdapter<>(fragment.getContext(), android.R.layout.simple_spinner_item, TURTYPER);
-        mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinTurType.setAdapter(mSpinnerAdapter);
+        etTurTyrpe = (TextInputEditText) fragment.findViewById(R.id.fragment_ny_kunde_edit_turtype);
 
         btnKamera = (Button) fragment.findViewById(R.id.fragment_ny_kunde_button_kamera);
         btnKamera.setOnClickListener(new View.OnClickListener() {
@@ -181,6 +177,7 @@ public class NyTurFragment extends Fragment {
 
         etNavn.setText("Ruben");
         etBeskrivelse.setText("Stor som et fjell");
+        etTurTyrpe.setText("Fjelltopp");
         mBildePath = "bildePath";
         return fragment;
     }
@@ -234,11 +231,11 @@ public class NyTurFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.v("NyTur", "request=" + requestCode + "; result=" + (resultCode == RESULT_OK));
+        Log.v("NyTur", "request=" + requestCode + "; result=" + (resultCode == ACTIVITY_RESULT_OK));
         // TODO: make switch
 
         // håndterer filvelger
-        if (requestCode == VELG_BILDE_REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == VELG_BILDE_REQUEST_CODE && resultCode == ACTIVITY_RESULT_OK) {
             if (data != null) {
                 mBildePath = data.getData().getPath();
                 Log.v("NyTur", "Filepicker=" + mBildePath);
@@ -246,14 +243,13 @@ public class NyTurFragment extends Fragment {
         }
 
         // håndterer kamera
-        else if (requestCode == TA_BILDE_REQUEST_CODE && resultCode == RESULT_OK) {
+        else if (requestCode == TA_BILDE_REQUEST_CODE && resultCode == ACTIVITY_RESULT_OK) {
             if (data != null) {
                 mBildePath = data.getData().getPath();
                 Log.v("NyTur", "Kamera=" + mBildePath);
             }
         }
     }
-
 
     // Resetter submit-knappen for å gjøre den interaktiv etter en feil
     private void åpneSubmit() {
@@ -270,6 +266,7 @@ public class NyTurFragment extends Fragment {
     private void resetTekst() {
         etBeskrivelse.setText("");
         etNavn.setText("");
+        etTurTyrpe.setText("");
     }
 
     private void lagNyTur() {
@@ -279,7 +276,7 @@ public class NyTurFragment extends Fragment {
         // hent all inndata
         String navn = etNavn.getText().toString().trim();
         String beskrivelse = etBeskrivelse.getText().toString().trim();
-        String turType = spinTurType.getSelectedItem().toString();
+        String turType = etTurTyrpe.getText().toString().trim();
         float latitude = 0;
         float longitude = 0;
         double moh = 0;
@@ -308,6 +305,11 @@ public class NyTurFragment extends Fragment {
             etBeskrivelse.requestFocus();
             error = true;
         }
+        if (turType.isEmpty() || turType.length() > MAX_TURTYPE_LENGDE) {
+            etTurTyrpe.setError("Må være mellom 1 og " + MAX_TURTYPE_LENGDE + " karakterer.");
+            etTurTyrpe.requestFocus();
+            error = true;
+        }
 
         /* TODO: putt tilbake
         // TODO: fil finnes ikke? Sjekk dette ut seinere !tmp.exists
@@ -331,12 +333,12 @@ public class NyTurFragment extends Fragment {
 
             // setter Turen inn i DB og gir rowID som tilbakemelding
             long insertID = turDbAdapter.nyTur(nyTur);
-            if (insertID > INSERT_OK) {
-                Snackbar.make(rootView, INSERT_OK_MESSAGE + insertID, Snackbar.LENGTH_LONG).show();
+            if (insertID > DB_INSERT_OK) {
+                Snackbar.make(rootView, DB_INSERT_OK_MESSAGE + insertID, Snackbar.LENGTH_LONG).show();
                 resetTekst();
             }
             else {
-                Snackbar.make(rootView, INSERT_FAIL_MESSAGE, Snackbar.LENGTH_LONG).show();
+                Snackbar.make(rootView, DB_INSERT_FAIL_MESSAGE, Snackbar.LENGTH_LONG).show();
             }
 
             // lukker koblingen til databasen

@@ -1,4 +1,4 @@
-package com.example.ruben.turapp.Database;
+package com.example.ruben.turapp.database;
 
 import android.content.ContentValues;
 import android.content.Context;
