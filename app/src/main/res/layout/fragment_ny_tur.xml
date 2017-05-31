@@ -1,13 +1,65 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.ruben.turapp.NyTurFragment">
+    tools:context="com.example.ruben.turapp.NyTurFragment"
+    android:orientation="vertical">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/fragment_ny_kunde_label_navn"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content">
 
-</FrameLayout>
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/fragment_ny_kunde_edit_navn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Stedsnavn"
+            android:inputType="textCapWords" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/fragment_ny_kunde_label_beskrivelse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/fragment_ny_kunde_edit_beskrivelse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Beskrivelse av stedet"
+            android:maxLines="7"
+            android:inputType="textMultiLine" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/fragment_ny_kunde_label_turtype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/fragment_ny_kunde_spinner_turtype"/>
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/fragment_ny_kunde_button_kamera"
+        android:text="Ta et bilde"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/fragment_ny_kunde_button_filvelger"
+        android:text="Velg bilde fra fil"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/fragment_ny_kunde_button_submit"
+        android:text="Lag ny tur"/>
+
+
+</LinearLayout>

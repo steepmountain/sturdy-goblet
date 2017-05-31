@@ -1,14 +1,14 @@
 package com.example.ruben.turapp;
 
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -18,7 +18,7 @@ public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback
     // TODO: hent zoom faktor fra shared preferences
     private static int ZOOM_FAKTOR = 10;
 
-    private MapFragment mMapFragment;
+    private SupportMapFragment mMapFragment;
     private GoogleMap mMap;
     private LatLng mPosition;
     private Tur mTur;
@@ -34,7 +34,7 @@ public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback
         View fragment = inflater.inflate(R.layout.fragment_detaljert_tur, container, false);
 
         // Lager et mapfragment som brukes inne i tur-fragmentet
-        mMapFragment = MapFragment.newInstance();
+        mMapFragment = SupportMapFragment.newInstance();
         getChildFragmentManager().beginTransaction().replace(R.id.fragment_detaljert_tur_map, mMapFragment).commit();
         mMapFragment.getMapAsync(this);
 
