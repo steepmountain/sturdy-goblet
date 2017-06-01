@@ -68,6 +68,10 @@ public class TurAdapter extends BaseAdapter {
         Tur item = mTur.get(i);
         vh.tvNavn.setText(item.getNavn());
 
+        // Todo: formater tekst til 10km, 5,5km, 1000m, etc
+        String typeOgDistanse = item.getType() + " " + item.getDistanseTil() + " meter unna.";
+        vh.tvType.setText(typeOgDistanse);
+
         // Viser kun 150 første tegn av en beskrivelse
         String txtBeskrivelse = item.getBeskrivelse();
         if (item.getBeskrivelse().length() > MAX_BESKRIVELSE) {
@@ -75,7 +79,6 @@ public class TurAdapter extends BaseAdapter {
         }
         vh.tvBeskrivelse.setText(txtBeskrivelse);
 
-        vh.tvType.setText(item.getType());
         vh.tvLatitude.setText(item.getLatitude() + "");
         vh.tvLongitude.setText(item.getLongitude() + "");
         vh.tvMoh.setText(item.getMoh() + "");

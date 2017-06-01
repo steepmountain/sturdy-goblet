@@ -4,8 +4,14 @@ import android.database.Cursor;
 
 import com.example.ruben.turapp.database.TurDbAdapter;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Created by Ruben on 29.05.2017.
@@ -21,6 +27,18 @@ public class Tur implements Serializable {
     private String type;
     private String bilde; // URL referanse
     private String registrant;
+
+    // Brukt for sortering i det grafiske
+    private int distanseTil;
+
+    public int getDistanseTil() {
+        return distanseTil;
+    }
+
+    public void setDistanseTil(int distanseTil) {
+        this.distanseTil = distanseTil;
+    }
+
 
     public String getNavn() {
         return navn;
@@ -87,7 +105,8 @@ public class Tur implements Serializable {
     }
 
 
-    public Tur() {}
+    public Tur() {
+    }
 
     // TODO: constructor that takes byte[] or blob for image
     public Tur(String navn, String beskrivelse, float latitude, float longitude, int moh, String type, String bilde, String registrant) {
@@ -110,6 +129,17 @@ public class Tur implements Serializable {
         this.type = type;
     }
 
+    public Tur(JSONObject jsonTur) {
+        this.navn = jsonTur.optString(TurDbAdapter.NAVN);
+        this.beskrivelse = jsonTur.optString(TurDbAdapter.BESKRIVELSE);
+        this.latitude = (float) jsonTur.optDouble(TurDbAdapter.LATITUDE);
+        this.longitude = (float) jsonTur.optDouble(TurDbAdapter.LONGITUTDE);
+        this.moh = jsonTur.optInt(TurDbAdapter.MOH);
+        this.type = jsonTur.optString(TurDbAdapter.TURTYPE);
+        this.bilde = jsonTur.optString(TurDbAdapter.TURBILDE);
+        this.registrant = jsonTur.optString(TurDbAdapter.REGISTRANT);
+    }
+
     public static Tur getTurFromCursor(Cursor cursor) {
         Tur t = new Tur();
         t.navn = cursor.getString(cursor.getColumnIndex(TurDbAdapter.NAVN));
@@ -124,12 +154,16 @@ public class Tur implements Serializable {
         return t;
     }
 
-    public static ArrayList<Tur> dummyData() {
-        ArrayList<Tur> tempList = new ArrayList<>();
-        tempList.add(new Tur("Gygrestolen", "En fottur på 6 bratte kilometer tar deg opp til det mytiske platået der gygra skal ha kastet kampesteiner utover Bø i raseri. Sagnet sier at når Gygrestolen faller skal verden gå under. Fjellplatået Gygrestolen er splittet i to hoveddeler der det ytterste platået siger litt utover hvert år. Gygrestolen er et viktig landemerke med sin karakteristiske form, og et mål for både turgåere og fjellklatrere. Herfra har du utsikt over det rike landbruksområdet og fjellene rundt Midt Telemark, og på vegen opp passerer du et fjellvann som ypperlig for en dukkert. ", 59.3660128f, 8.9787209f, 490, "Utsiktspunkt"));
-        tempList.add(new Tur("Bryggefjell", "Bryggefjell kneisar høgt over Bødalen i NV. Her er det lang og bratt oppstigning på 430 høgde-meter frå parkeringsplassen øvst i Liheia opp til store isskurte svaberg. På Bryggefjell-nuten 778 moh har ein panoramautsikt ut over Bøbygda og opp mot Lifjell", 59.4401667f,	8.9663139f,778, "Fjelltop"));
-        tempList.add(new Tur("Sletteliberget", "Fram til Sletteliberget er det bred og god sti og mulig å trille med barnevogn. Videre fra Sletteliberget til Dingdangkyrkja er det smalere sti, bæremeis er egnet. De som vil kan bli igjen på Sletteliberget, mens de som vil kan fortsette til Dingdangkyrkja. Vi har felles lunsj ved Sletteliberget og nyter utsikten. Vi ønsker å gjøre oppmerksom på at det er et bratt stup ved Sletteliberget, og at barna her til enhver tid må holdes under oppsyn av sine ledsagere, turlederen har ikke noe ansvar i den forbindelse.",59.4417571f, 9.0031219f, 405, "Utsiktspunkt"));
-        return tempList;
+    public static ArrayList<Tur> lagTurListe(String jsonString) throws JSONException {
+        ArrayList<Tur> turListe = new ArrayList<>();
+        JSONObject jsonObj = new JSONObject(jsonString);
+        JSONArray jsonTurArray = jsonObj.optJSONArray(TurDbAdapter.TUR_TABLE);
+        for (int i = 0; i < jsonTurArray.length(); i++) {
+            JSONObject jsonTur = (JSONObject) jsonTurArray.get(i);
+            Tur t = new Tur(jsonTur);
+            turListe.add(t);
+        }
+        return turListe;
     }
 
     @Override
@@ -145,4 +179,14 @@ public class Tur implements Serializable {
                 ", registrant='" + registrant + '\'' +
                 '}';
     }
+
+    public static Comparator<Tur> DistanseComparator = new Comparator<Tur>() {
+        @Override
+        public int compare(Tur tur, Tur t1) {
+            float dist1 = tur.getDistanseTil();
+            float dist2 = t1.getDistanseTil();
+
+            return (int) (dist1 - dist2);
+        }
+    };
 }

@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 
 import com.example.ruben.turapp.database.TurDbAdapter;
@@ -58,8 +59,8 @@ public class NyTurFragment extends Fragment {
     private TextInputLayout tvTurTypeLabel;
     private TextInputEditText etTurTyrpe;
     private Spinner spinTurType;
-    private Button btnKamera;
-    private Button btnFilvelger;
+    private ImageButton btnKamera;
+    private ImageButton btnFilvelger;
     private Button btnSubmit;
 
 
@@ -144,7 +145,7 @@ public class NyTurFragment extends Fragment {
         tvTurTypeLabel = (TextInputLayout) fragment.findViewById(R.id.fragment_ny_kunde_label_turtype);
         etTurTyrpe = (TextInputEditText) fragment.findViewById(R.id.fragment_ny_kunde_edit_turtype);
 
-        btnKamera = (Button) fragment.findViewById(R.id.fragment_ny_kunde_button_kamera);
+        btnKamera = (ImageButton) fragment.findViewById(R.id.fragment_ny_kunde_button_kamera);
         btnKamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -153,7 +154,7 @@ public class NyTurFragment extends Fragment {
             }
         });
 
-        btnFilvelger = (Button) fragment.findViewById(R.id.fragment_ny_kunde_button_filvelger);
+        btnFilvelger = (ImageButton) fragment.findViewById(R.id.fragment_ny_kunde_button_filvelger);
         btnFilvelger.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -231,7 +232,6 @@ public class NyTurFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.v("NyTur", "request=" + requestCode + "; result=" + (resultCode == ACTIVITY_RESULT_OK));
         // TODO: make switch
 
         // håndterer filvelger

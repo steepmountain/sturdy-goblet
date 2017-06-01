@@ -48,15 +48,15 @@ public class TurDbAdapter {
     // Databasevariabler for SQLite
     private static final String DB_NAVN = "TUR_DB.db";
     private static final int DB_VERSJON = 1;
-    private static final String TUR_TABLE = "turMål";
+    public static final String TUR_TABLE = "Tur";
     public static final String TID = "tid";
     public static final String NAVN = "navn";
     public static final String BESKRIVELSE = "beskrivelse";
     public static final String LATITUDE = "latitude";
     public static final String LONGITUTDE = "longitude";
     public static final String MOH = "moh";
-    public static final String TURBILDE = "turBilde";
     public static final String TURTYPE = "turType";
+    public static final String TURBILDE = "turBilde";
     public static final String REGISTRANT = "registrant";
     private static final String[] TUR_FIELDS = new String[]{
             TID,
@@ -65,8 +65,8 @@ public class TurDbAdapter {
             LATITUDE,
             LONGITUTDE,
             MOH,
-            TURBILDE,
             TURTYPE,
+            TURBILDE,
             REGISTRANT
     };
 
@@ -79,8 +79,8 @@ public class TurDbAdapter {
                     + LATITUDE + " REAL NOT NULL, "
                     + LONGITUTDE + " REAL NOT NULL, "
                     + MOH + " INTEGER NOT NULL, "
-                    + TURBILDE + " TEXT NOT NULL, "
                     + TURTYPE + " TEXT NOT NULL, "
+                    + TURBILDE + " TEXT NOT NULL, "
                     + REGISTRANT + " TEXT NOT NULL"
                     + ");";
 
@@ -96,8 +96,8 @@ public class TurDbAdapter {
         newValues.put(TurDbAdapter.LATITUDE, nyTur.getLatitude());
         newValues.put(TurDbAdapter.LONGITUTDE, nyTur.getLongitude());
         newValues.put(TurDbAdapter.MOH, nyTur.getMoh());
-        newValues.put(TurDbAdapter.TURBILDE, nyTur.getBilde());
         newValues.put(TurDbAdapter.TURTYPE, nyTur.getType());
+        newValues.put(TurDbAdapter.TURBILDE, nyTur.getBilde());
         newValues.put(TurDbAdapter.REGISTRANT, nyTur.getRegistrant());
         return mDb.insertWithOnConflict(TUR_TABLE, null, newValues, SQLiteDatabase.CONFLICT_IGNORE);
     }
@@ -113,8 +113,13 @@ public class TurDbAdapter {
         return mDb.query(TUR_TABLE, TUR_FIELDS, null, null, null, null, null);
     }
 
+    public boolean slettTur(int turId) {
+        String[] selectionArgs = {String.valueOf(turId)};
+        return mDb.delete(TUR_TABLE, TID + "=?",selectionArgs ) > 0;
+    }
+
     // Omgjør en Cursor om til et Tur-objekt
-    public static Tur cursorTilPie(Cursor cursor) {
+    public static Tur cursorToTur(Cursor cursor) {
         Tur tur = new Tur();
         tur.setNavn(cursor.getString(cursor.getColumnIndex(NAVN)));
         tur.setBeskrivelse(cursor.getString(cursor.getColumnIndex(BESKRIVELSE)));

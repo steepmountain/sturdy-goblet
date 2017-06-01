@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Personalia">
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogMessage="Skriv inn navnet ditt"
+            android:inputType="textCapWords"
+            android:key="navn"
+            android:summary=""
+            android:title="Navn" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Kart">
+        <EditTextPreference
+            android:defaultValue="10"
+            android:dialogMessage="Default zoom faktor på kartet."
+            android:inputType="number"
+            android:key="zoomFaktor"
+            android:summary=""
+            android:title="Default zoom faktor på kartet." />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -120,6 +120,7 @@ public class RestKlient {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
+                assert connection != null;
                 connection.disconnect();
             }
 
