@@ -153,7 +153,6 @@ public class TurListeFragment extends Fragment implements GoogleApiClient.OnConn
         // Sjekker om appen har permission til å bruke posisjon
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mSistePosisjon = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
             // Oppdaterer turlisten etter at appen har fått posisjon, siden asynk gjør at dette skjer etter at listview er laget første gangen.
             oppdaterTurListe(mTurListe);
         }

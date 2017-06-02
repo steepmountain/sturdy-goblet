@@ -17,9 +17,11 @@ import android.view.MenuItem;
 
 import com.example.ruben.turapp.database.DatabaseSynk;
 import com.example.ruben.turapp.database.TurDbAdapter;
+import com.example.ruben.turapp.restklient.NetworkHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_CODE_COARSE_LOCATION = 1;
     public static final int REQUEST_CODE_INTERNET = 2;
     public static final String FILE_PROVIDER_AUTHORITY = "com.example.android.fileprovider";
+    public static final String INGEN_NETTVERK_MELDING = "Ingen nettverkstilgang, kunne ikke synkronisere";
+    public static final String TOM_DATABASE_MELDING = "Ingen innlegg å synkronisere.";
+    public static final String RADER_SYNKRONISERT_MELDING = " rad(er) synkronisert.";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,17 +40,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /*
-        * 4. Sjekk at mBildePath eksisterer i minnetSorter etter hvor langt unna currPos de er.
-        * 6. Unike NAVN i tabeller?
+        * 4. Sjekk at mBildePath eksisterer i minnet
         * 7. Legg med SQL scirpt
-        * 8 NyTur må bruke GoogleAPi og lokasjon
         * ListView loader ikke før posisjon er ferdig
         * 8. Laste opp/ned bilde
         *  8. STtopp at man kan klikke Back fra første fragment
-        *  9. Vises ikke snackbar hvis bilde er feil første gang
         *  Gjør Instillinger fint.
-       *
-         */
+        *  Bedre håndtering av permissions
+        *
+        *  java.lang.NullPointerException: Attempt to invoke virtual method 'java.util.Iterator java.util.ArrayList.iterator()' on a null object reference
+        *  Sjekk om appen er koblet til nettet ved launch!
+        */
 
         // Ber om permissions for Coarse og Fine locations, og Internet
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -95,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                 transaction.commit();
                 return true;
 
-
             default:
                 return true;
 
@@ -105,24 +109,31 @@ public class MainActivity extends AppCompatActivity {
     // Kaller på et DatabaseSynk-objekt som gjør om spørringen av DB i fra Cursor til JSON og prøver å sende det til online DB.
     private void synkroniserDatabaser() throws JSONException {
 
-        TurDbAdapter turDbAdapter = new TurDbAdapter(getApplicationContext());
-        turDbAdapter.open();
+        NetworkHelper helper = new NetworkHelper(this);
+        if (helper.isOnline()) {
+            TurDbAdapter turDbAdapter = new TurDbAdapter(getApplicationContext());
+            turDbAdapter.open();
 
-        Cursor alleTurer = turDbAdapter.hentAlleTurer();
-        int antallRader = alleTurer.getCount();
-        if (antallRader > 0) {
-            // Hvis flere enn 0 rader, prøv å send til DB
-            DatabaseSynk dbSynk = new DatabaseSynk(getApplicationContext(), turDbAdapter);
-            JSONArray toSend = dbSynk.cursorTilJSONArray(alleTurer);
-            dbSynk.send(toSend);
-            Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), "Synkroniserte " + antallRader + " inlegg.", Snackbar.LENGTH_LONG).show();
-        } else {
-            // Ingen rader i Cursor, betyr at DB er tom
-            Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), "Ingen innlegg å synkronisere.", Snackbar.LENGTH_LONG).show();
+            Cursor alleTurer = turDbAdapter.hentAlleTurer();
+            int antallRader = alleTurer.getCount();
+            if (antallRader > 0) {
+                DatabaseSynk dbSynk = new DatabaseSynk(turDbAdapter);
+                JSONArray alleRader = dbSynk.cursorTilJSONArray(alleTurer);
+                for (int i = 0; i < antallRader; i++) {
+                    JSONObject rad = alleRader.getJSONObject(i);
+                    dbSynk.send(rad);
+                }
+                Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), antallRader + RADER_SYNKRONISERT_MELDING, Snackbar.LENGTH_LONG).show();
+            }
+            else {
+                // Ingen rader å synkronisere
+                Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), TOM_DATABASE_MELDING, Snackbar.LENGTH_LONG).show();
+            }
         }
-
-        // TODO: når skal DB lukkes?
-        //turDbAdapter.close();
+        else {
+            // Ingen nettverksforbindelse, ikke prøv å synkronisere
+            Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), "Ingen nettverkstilgang, kunne ikke synkronisere.", Snackbar.LENGTH_LONG).show();
+        }
     }
 
 }

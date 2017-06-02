@@ -133,22 +133,12 @@ public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback
         tvMoh.setText(mTur.getMoh() + "");
 
 
+        // TODO: hvordan fange unntakstilfelle ved at bildet ikke blir vist?
+        // TODO: Skaler bitmap etter skjermen
+        // Dekoder den gitte bildeURI og lager et Bitmap som vises.
         ivBilde = (ImageView) fragment.findViewById(R.id.fragment_detaljert_tur_bilde);
-
-        // PRøver å lage bitmap ut av bilde URI
-        Uri bildeUri = Uri.parse(mTur.getBilde());
-        Log.v("DetaljertTurFragment", bildeUri.toString());
-        ContentResolver resolver = mContext.getContentResolver();
-        try {
-            Log.v("DetaljertTurFragment", bildeUri.toString());
-
-            InputStream is = resolver.openInputStream(bildeUri);
-            ivBilde.setImageBitmap(BitmapFactory.decodeStream(is));
-        } catch (FileNotFoundException e) {
-            // TODO: snackbar hvis feil
-            e.printStackTrace();
-            Snackbar.make(rootView, FILE_NOT_FOUND_MESSAGE, Snackbar.LENGTH_LONG).show();
-        }
+        Bitmap bilde = BitmapFactory.decodeFile(mTur.getBilde());
+        ivBilde.setImageBitmap(bilde);
 
         // Henter zoom faktor fra settings
         SharedPreferences mSettings = getActivity().getPreferences(Context.MODE_PRIVATE);

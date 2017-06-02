@@ -50,9 +50,10 @@
 
         <ImageView
             android:id="@+id/fragment_detaljert_tur_bilde"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="Bilde av turstedet" />
+            android:contentDescription="Bilde av turstedet"
+            android:src="@drawable/common_google_signin_btn_icon_light" />
 
     </LinearLayout>
 

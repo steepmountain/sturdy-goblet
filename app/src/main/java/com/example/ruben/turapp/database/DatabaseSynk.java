@@ -1,11 +1,9 @@
 package com.example.ruben.turapp.database;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
 import com.example.ruben.turapp.restklient.GetResponseCallback;
-import com.example.ruben.turapp.restklient.NetworkHelper;
 import com.example.ruben.turapp.restklient.RestApi;
 
 import org.json.JSONArray;
@@ -19,31 +17,21 @@ import org.json.JSONObject;
 public class DatabaseSynk {
 
     private TurDbAdapter mTurDbAdapter;
-    private Context mContext;
 
-    public DatabaseSynk(Context context, TurDbAdapter turDbAdapter) {
-        mContext = context;
+    public DatabaseSynk(TurDbAdapter turDbAdapter) {
         mTurDbAdapter = turDbAdapter;
     }
 
-    // Sender JSONArray til REST API
-    public void send(JSONArray toInsert) throws JSONException {
-
-        NetworkHelper helper = new NetworkHelper(mContext);
-        if (helper.isOnline()) {
-            RestApi api = new RestApi();
-            for (int i = 0; i < toInsert.length(); i++) {
-                JSONObject rad = toInsert.getJSONObject(i);
-                final int key = rad.getInt(TurDbAdapter.TID);
-                api.settInnTur(new GetResponseCallback() {
-                    @Override
-                    public void onDataReceived(String item) {
-                        mTurDbAdapter.slettTur(key);
-                    }
-                }, rad);
-
+    // Sender et JSONObjekt til MySQL-databasen. Hvis sukkess fjernes den fra SQLite databasen
+    public void send(JSONObject turRad) throws JSONException {
+        final int nøkkel = turRad.getInt(TurDbAdapter.TID);
+        RestApi api = new RestApi();
+        api.settInnTur(new GetResponseCallback() {
+            @Override
+            public void onDataReceived(String item) {
+                mTurDbAdapter.slettTur(nøkkel);
             }
-        }
+        }, turRad);
     }
 
     // Gjør om et Cursor-objekt til et JSONArray
