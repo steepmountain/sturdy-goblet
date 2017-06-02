@@ -14,6 +14,7 @@
             android:id="@+id/fragment_ny_kunde_edit_navn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:maxLines="1"
             android:hint="Stedsnavn"
             android:inputType="textCapWords" />
     </android.support.design.widget.TextInputLayout>
@@ -41,6 +42,7 @@
             android:id="@+id/fragment_ny_kunde_edit_turtype"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:maxLines="1"
             android:hint="Turtype (eks fjelltopp, strand)" />
     </android.support.design.widget.TextInputLayout>
 

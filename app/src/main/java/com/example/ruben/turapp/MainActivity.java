@@ -12,7 +12,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.StringBuilderPrinter;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -25,34 +24,33 @@ import org.json.JSONException;
 public class MainActivity extends AppCompatActivity {
 
     // Request-koder for permissions
-    private static final int REQUEST_CODE_FINE_LOCATION = 0;
-    private static final int REQUEST_CODE_COARSE_LOCATION = 1;
-    private static final int REQUEST_CODE_INTERNET = 2;
+    public static final int REQUEST_CODE_FINE_LOCATION = 0;
+    public static final int REQUEST_CODE_COARSE_LOCATION = 1;
+    public static final int REQUEST_CODE_INTERNET = 2;
+    public static final String FILE_PROVIDER_AUTHORITY = "com.example.android.fileprovider";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /* ListView viser hvor mange meter til hver
-        * 3.  LocationService for siste location
-        *     Sett min lokasjon på kartet
+        /*
         * 4. Sjekk at mBildePath eksisterer i minnetSorter etter hvor langt unna currPos de er.
-        * 6. InstillingerFragment - logininfo og default zoom value
         * 6. Unike NAVN i tabeller?
         * 7. Legg med SQL scirpt
+        * 8 NyTur må bruke GoogleAPi og lokasjon
+        * ListView loader ikke før posisjon er ferdig
+        * 8. Laste opp/ned bilde
         *  8. STtopp at man kan klikke Back fra første fragment
-        *
+        *  9. Vises ikke snackbar hvis bilde er feil første gang
+        *  Gjør Instillinger fint.
+       *
          */
 
-        // TODO: SQLIte DB må vite om alle turtyper, lagres lokalt?
-        // TODO: FTP bilde til server, få lagringsURL tilbake
-
-        // TODO: get settings
         // Ber om permissions for Coarse og Fine locations, og Internet
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_FINE_LOCATION);
             ActivityCompat.requestPermissions(this,

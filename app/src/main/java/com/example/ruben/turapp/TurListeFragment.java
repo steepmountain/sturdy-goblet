@@ -1,8 +1,15 @@
 package com.example.ruben.turapp;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -17,7 +24,9 @@ import android.widget.ListView;
 import com.example.ruben.turapp.restklient.GetResponseCallback;
 import com.example.ruben.turapp.restklient.NetworkHelper;
 import com.example.ruben.turapp.restklient.RestApi;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONException;
 
@@ -25,12 +34,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 
-public class TurListeFragment extends Fragment {
+public class TurListeFragment extends Fragment implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     private ListView mListView; // TODO: better name
     private ArrayList<Tur> mTurListe;
     private TurAdapter mAdapter;
-    private Location mLokasjon;
+    private Location mSistePosisjon;
+    private GoogleApiClient mGoogleApiClient;
+    private Context mContext;
+    private Activity mActivity;
 
     public TurListeFragment() {
         // Required empty public constructor
@@ -41,8 +53,18 @@ public class TurListeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View fragment = inflater.inflate(R.layout.fragment_tur_liste, container, false);
+        mActivity = getActivity();
+        mActivity.setTitle("TurApp");
+        mContext = mActivity.getApplicationContext();
 
-        getActivity().setTitle("TurApp"); // TODO: mActivity;
+        // Bygger google api klient for å kunne hente siste posisjon
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(mContext)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
         mListView = (ListView) fragment.findViewById(R.id.fragment_tur_liste_listView);
 
@@ -82,17 +104,18 @@ public class TurListeFragment extends Fragment {
 
         mTurListe = nyListe;
 
-        mLokasjon = new Location(LocationManager.GPS_PROVIDER); // Min location
-        mLokasjon.setLatitude(59.4089814);
-        mLokasjon.setLongitude(9.0562463);
-        for (Tur t : mTurListe) {
-            Location turLokasjon = new Location(LocationManager.GPS_PROVIDER); // Tur location
-            turLokasjon.setLatitude(t.getLatitude());
-            turLokasjon.setLongitude(t.getLongitude());
-            t.setDistanseTil( (int) mLokasjon.distanceTo(turLokasjon));
+        // Hvis appen finner siste posisjon, sorter alle turer etter hvor langt unna current posisjon de er.
+        if (mSistePosisjon != null) {
+            for (Tur t : mTurListe) {
+                Location turPosisjon = new Location("Temp Provider"); // Tur location
+                turPosisjon.setLatitude(t.getLatitude());
+                turPosisjon.setLongitude(t.getLongitude());
+                turPosisjon.setAltitude(t.getMoh());
+                t.setDistanseTil((int) mSistePosisjon.distanceTo(turPosisjon));
+            }
+            Collections.sort(mTurListe, Tur.DistanseComparator);
         }
 
-        Collections.sort(mTurListe, Tur.DistanseComparator);
 
         mAdapter = new TurAdapter(getActivity(), nyListe);
         mListView.setAdapter(mAdapter);
@@ -112,5 +135,38 @@ public class TurListeFragment extends Fragment {
         });
 
         mAdapter.notifyDataSetChanged();
+    }
+
+    public void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    public void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        // Sjekker om appen har permission til å bruke posisjon
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mSistePosisjon = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+            // Oppdaterer turlisten etter at appen har fått posisjon, siden asynk gjør at dette skjer etter at listview er laget første gangen.
+            oppdaterTurListe(mTurListe);
+        }
+    }
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }

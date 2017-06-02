@@ -1,6 +1,7 @@
 package com.example.ruben.turapp.restklient;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -87,7 +88,6 @@ public class RestKlient {
         @Override
         protected String doInBackground(String... strings) {
             String response = null;
-
             HttpURLConnection connection = null;
             try {
                 URL restUrl = new URL(mRestUrl);
@@ -104,7 +104,6 @@ public class RestKlient {
                 out.close();
 
                 int status = connection.getResponseCode();
-
                 if (status == HttpURLConnection.HTTP_OK) {
                     InputStream is = connection.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -123,7 +122,6 @@ public class RestKlient {
                 assert connection != null;
                 connection.disconnect();
             }
-
             return response;
         }
 

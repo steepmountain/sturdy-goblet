@@ -120,15 +120,6 @@ public class Tur implements Serializable {
         this.registrant = registrant;
     }
 
-    public Tur(String navn, String beskrivelse, float latitude, float longitude, int moh, String type) {
-        this.navn = navn;
-        this.beskrivelse = beskrivelse;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.moh = moh;
-        this.type = type;
-    }
-
     public Tur(JSONObject jsonTur) {
         this.navn = jsonTur.optString(TurDbAdapter.NAVN);
         this.beskrivelse = jsonTur.optString(TurDbAdapter.BESKRIVELSE);

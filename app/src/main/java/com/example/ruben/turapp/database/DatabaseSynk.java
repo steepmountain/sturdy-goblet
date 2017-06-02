@@ -2,6 +2,7 @@ package com.example.ruben.turapp.database;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 
 import com.example.ruben.turapp.restklient.GetResponseCallback;
 import com.example.ruben.turapp.restklient.NetworkHelper;
@@ -31,7 +32,6 @@ public class DatabaseSynk {
         NetworkHelper helper = new NetworkHelper(mContext);
         if (helper.isOnline()) {
             RestApi api = new RestApi();
-
             for (int i = 0; i < toInsert.length(); i++) {
                 JSONObject rad = toInsert.getJSONObject(i);
                 final int key = rad.getInt(TurDbAdapter.TID);

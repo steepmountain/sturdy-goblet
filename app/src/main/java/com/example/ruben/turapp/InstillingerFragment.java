@@ -45,10 +45,11 @@ public class InstillingerFragment extends PreferenceFragmentCompat {
         etpNavnPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
+                String nyNavn = (String) o;
                 SharedPreferences.Editor edit = mSettings.edit();
-                edit.putString("Navn", (String) o);
+                edit.putString("Navn", nyNavn);
                 edit.apply();
-                etpNavnPref.setSummary((String) o);
+                etpNavnPref.setSummary(nyNavn);
                 return false;
             }
         });
@@ -59,11 +60,11 @@ public class InstillingerFragment extends PreferenceFragmentCompat {
         etpZoomPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
+                int nyZoom = Integer.parseInt((String)o);
                 SharedPreferences.Editor edit = mSettings.edit();
-                edit.putInt("Navn", (int) o);
-                // TODO: FIX STRING CASTING
+                edit.putInt("ZoomFaktor", nyZoom);
                 edit.apply();
-                etpZoomPref.setSummary((int) o);
+                etpZoomPref.setSummary(nyZoom + "");
                 return false;
             }
         });
