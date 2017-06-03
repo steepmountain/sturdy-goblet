@@ -10,7 +10,9 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.location.Location;
+import android.media.ExifInterface;
 import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +27,7 @@ import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
+import android.util.MonthDisplayHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +35,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
+import com.example.ruben.turapp.bitmap.BitmapHelper;
 import com.example.ruben.turapp.database.DatabaseSynk;
 import com.example.ruben.turapp.database.TurDbAdapter;
 import com.example.ruben.turapp.restklient.NetworkHelper;
@@ -66,15 +71,16 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
 
     private String mBildePath;
 
+    private TextView tvLatitude;
+    private TextView tvLongitude;
+    private TextView tvMoh;
     private TextInputLayout tvNavnLabel;
     private TextInputEditText etNavn;
     private TextInputLayout tvBeskrivelseLabel;
     private TextInputEditText etBeskrivelse;
     private TextInputLayout tvTurTypeLabel;
     private TextInputEditText etTurTyrpe;
-    private Spinner spinTurType;
-    private ImageButton btnKamera;
-    private ImageButton btnFilvelger;
+    private Button btnKamera;
     private ImageView ivThumbnail;
     private Button btnSubmit;
 
@@ -84,7 +90,6 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
     private static final int MAX_BESKRIVELSE_LENGDE = 1000;
     private static final int MAX_TURTYPE_LENGDE = 200;
     private static final int MAX_REGISTRANT_LENGDE = 200;
-    private static final int VELG_BILDE_REQUEST_CODE = 0;
     private static final int TA_BILDE_REQUEST_CODE = 1;
     private static final int ACTIVITY_RESULT_OK = -1;
     private static final int DB_INSERT_OK = 0;
@@ -94,6 +99,13 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
     private static final String LOGIN_UGYLDIG_MELDING = "Logg inn i Instillinger før du lager en ny tur. Navnet må være mellom 1 og " + MAX_REGISTRANT_LENGDE + " karakterer.";
     private static final String DATABASE_INSERT_OK_MELDING = "Turen er lagt inn med ID ";
     private static final String INGEN_KJENT_POSISJON_MELDING = "Ingen kjent posisjon tilgjengelig. Koble til en posisjonstjeneste og prøv igjen.";
+    private static final String POSISJON_LAT_TEKST = "Breddegrad: ";
+    private static final String POSISJON_LNG_TEKST = "Lengdegrad: ";
+    private static final String POSISJON_MOH_TEKST = "Moh.: ";
+
+    private float latitude = 0;
+    private float longitude = 0;
+    private int moh = 0;
 
 
 
@@ -127,8 +139,10 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
                     .build();
         }
 
-        // Setter tittel på actionbar
-        //getActivity().getActionBar().setTitle(TITTEL); // TODO: sjekk om det funker uten support
+        tvLatitude = (TextView) fragment.findViewById(R.id.fragment_ny_kunde_latitude);
+        tvLongitude = (TextView) fragment.findViewById(R.id.fragment_ny_kunde_longitude);
+        tvMoh = (TextView) fragment.findViewById(R.id.fragment_ny_kunde_moh);
+        settPosisjonsTekst(latitude, longitude, moh);
 
         // label og edit for navn
         tvNavnLabel = (TextInputLayout) fragment.findViewById(R.id.fragment_ny_kunde_label_navn);
@@ -142,7 +156,7 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
         tvTurTypeLabel = (TextInputLayout) fragment.findViewById(R.id.fragment_ny_kunde_label_turtype);
         etTurTyrpe = (TextInputEditText) fragment.findViewById(R.id.fragment_ny_kunde_edit_turtype);
 
-        btnKamera = (ImageButton) fragment.findViewById(R.id.fragment_ny_kunde_button_kamera);
+        btnKamera = (Button) fragment.findViewById(R.id.fragment_ny_kunde_button_kamera);
         btnKamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -150,17 +164,11 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
             }
         });
 
-        btnFilvelger = (ImageButton) fragment.findViewById(R.id.fragment_ny_kunde_button_filvelger);
-        btnFilvelger.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                velgBildeFraFil();
-            }
-        });
-
-        // TODO: Set visible/invisible?
+        // Sjekker om det ligger et bilde i variabelen hvis man har navigert rundt i appen uten å submitte ny tur
         ivThumbnail = (ImageView) fragment.findViewById(R.id.fragment_ny_kunde_image_thumbnail);
+        if (mBildePath != null) {
+            settBilde(mBildePath);
+        }
 
         btnSubmit = (Button) fragment.findViewById(R.id.fragment_ny_kunde_button_submit);
         btnSubmit.setOnClickListener(new View.OnClickListener() {
@@ -170,15 +178,10 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
             }
         });
 
-        // TODO: get current/last location
-
-        etNavn.setText("Ruben");
-        etBeskrivelse.setText("Stor som et fjell");
-        etTurTyrpe.setText("Fjelltopp");
         return fragment;
     }
 
-    // bruker intent for å åpne kamera og ta et bilde
+    // bruker intent for å åpne kamera og ta et bilde. Bilde lagres kun for appen
     private void taBildeMedKamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -201,15 +204,6 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
         }
     }
 
-    // bruker intent for å hente et bilde fra fil
-    private void velgBildeFraFil() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        startActivityForResult(intent, VELG_BILDE_REQUEST_CODE);
-    }
-
     // Lager en fil for å lagre bilde med kamera
     private File lagBildefil() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -229,27 +223,52 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // håndterer filvelger
-        if (requestCode == VELG_BILDE_REQUEST_CODE && resultCode == ACTIVITY_RESULT_OK) {
-
-
-            // Følg stackexchange her
-
-
-            if (data != null) {
-                // TODO: Få path i samme form som kamera
-                mBildePath = data.getData().getPath();
-            }
-        }
         if (requestCode == TA_BILDE_REQUEST_CODE && resultCode == ACTIVITY_RESULT_OK) {
             // Henter fullversjonen lagret på disk og viser den i fragmentet.
-            // TODO: Skaler bildet
-            Bitmap bilde = BitmapFactory.decodeFile(mBildePath);
-            ivThumbnail.setImageBitmap(bilde);
+            settBilde(mBildePath);
         }
     }
 
+    private String hentFilstiFraUri(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = mActivity.getContentResolver().query(uri, projection, null, null, null);
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
+    }
+
+    private void settBilde(String bildesti) {
+        int targetW = ivThumbnail.getWidth();
+        int targetH = ivThumbnail.getHeight();
+
+        Log.v("NyTur", "Targets{" +targetW + "," + targetH +"}");
+
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(bildesti, bmOptions);
+        int bildeW = bmOptions.outWidth;
+        int bildeH = bmOptions.outHeight;
+        Log.v("NyTur", "Bilde{" +bildeW + "," + bildeH +"}");
+
+        int skalering = bildeW/targetW;
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = skalering;
+        Bitmap bilde = BitmapFactory.decodeFile(bildesti, bmOptions);
+
+
+        ExifInterface exif = null;
+        try {
+            exif = new ExifInterface(bildesti);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int orientering = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_UNDEFINED);
+
+        Bitmap rotertBilde = BitmapHelper.roterBitmap(bilde, orientering);
+
+        ivThumbnail.setImageBitmap(rotertBilde);
+    }
     // Fjerner all tekst når en ny tur blir laget
     private void resetTekst() {
         etBeskrivelse.setText("");
@@ -265,6 +284,8 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
         String navn = etNavn.getText().toString().trim();
         String beskrivelse = etBeskrivelse.getText().toString().trim();
         String turType = etTurTyrpe.getText().toString().trim();
+
+
         float latitude = 0;
         float longitude = 0;
         int moh = 0;
@@ -276,7 +297,7 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
         }
         else {
             // mSistePosisjon er null, så det finnes ingen siste kjent posisjon.
-            Snackbar.make(rootView, INGEN_KJENT_POSISJON_MELDING, Snackbar.LENGTH_LONG).show();
+
             error = true;
         }
 
@@ -333,6 +354,31 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
         }
     }
 
+    // Oppdaterer posisjonsvariabler
+    private void settPosisjon(Location sistePosisjon) {
+        if (sistePosisjon != null) {
+            mSistePosisjon = sistePosisjon;
+            latitude = (float) mSistePosisjon.getLatitude();
+            longitude = (float) mSistePosisjon.getLongitude();
+            moh = (int) mSistePosisjon.getAltitude();
+            settPosisjonsTekst(latitude, longitude, moh);
+        }
+        else {
+            // Ingen gyldig posisjon!
+            Snackbar.make(rootView, INGEN_KJENT_POSISJON_MELDING, Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    // Håndterer posisjonsteksten i toppen av fragmentet
+    private void settPosisjonsTekst(float lat, float lng, int moh) {
+        String latTekst = POSISJON_LAT_TEKST + lat;
+        String lngTekst = POSISJON_LNG_TEKST + lng;
+        String mohTekst = POSISJON_MOH_TEKST + moh;
+
+        tvLatitude.setText(latTekst);
+        tvLongitude.setText(lngTekst);
+        tvMoh.setText(mohTekst);
+    }
     public void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
@@ -346,14 +392,14 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
     // onLocationChanged-listener følger med på posisjonsbytte
     @Override
     public void onLocationChanged(Location location) {
-        mSistePosisjon = location;
+        settPosisjon(location);
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // Sjekker om appen har permission til å bruke posisjon
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mSistePosisjon = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            settPosisjon(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
         }
     }
 

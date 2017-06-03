@@ -3,16 +3,12 @@ package com.example.ruben.turapp.restklient;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.util.Log;
 
-import com.example.ruben.turapp.bitmap.BitmapConverter;
+import com.example.ruben.turapp.bitmap.BitmapHelper;
 
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -178,7 +174,7 @@ public class RestKlient {
 
         @Override
         protected void onPostExecute(Bitmap bilde) {
-            mCallback.onTaskComplete(BitmapConverter.bitmapTilString(bilde));
+            mCallback.onTaskComplete(BitmapHelper.bitmapTilString(bilde));
             super.onPostExecute(bilde);
         }
     }

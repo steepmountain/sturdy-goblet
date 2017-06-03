@@ -39,23 +39,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /*
-        * 7. Legg med SQL scirpt
-        * ListView loader ikke før posisjon er ferdig
-        *  8. STtopp at man kan klikke Back fra første fragment
-        *  Gjør Instillinger fint.
-        *  Bedre håndtering av permissions
-        * Bruk retur-verdi fra RESTKlient korrekt.
-        *  Hvis online, instant-synk NyTur
+        *  MUST DO
+        *  TurListe -> Stiler teksten som NyTur
+        *  DetaljertTur - > Implementer bildevisning fra NyTur
+        *  DetaljertTur -> Stiler teksten som NyTur.
+        *  InstillingerFragment -> Stiler
+        *  NyTur -> Bilde må ta høyde for padding/margin ved size.
+        *           -> Fix: variabler for padding/margin og ta disse vekk ved utregning av størrelse
         *
-        *  FIX
-        *  NyTur med bildeinfo > instillinger > tilbake til info gir gyldig input, men viser ikke riktig bilde.
-        *  DetaljertTur - > scrollviw for å se om online lnks ender opp lenger nede
-        *  Bilder må roterers riktig
-        *  Hvordan hente
-        *  DetaljertTur. Tab view for info -> kart -> bilde?
-        *  rotasjon av hele appen må fungere
+        *
+        *  Rotasjon av hele appen må fungere
         *  Alle sider skal ha TITTEL
-        *  Riktig addToBackStack
+        *  Riktig addToBackStack for første fragment etter Activity
+        *  Legg ved SQL-skript
+        *  Scrap filepicker
+        *  Fjern alle unødvendige filer fra res
+        *  Gjør alle kommentarer norske
+        *  Gjør alle variabler norske
+        *  Gå gjennom todo
+        *  Lage skjermbilder
+        *  MAYBE
+        *  Permissions-håndtering i DetaljertTurFragment
         */
 
         // Ber om permissions for Coarse og Fine locations, og Internet

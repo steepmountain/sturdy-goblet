@@ -3,16 +3,14 @@
 
     <item
         android:id="@+id/action_bar_menu_settings"
-        android:icon="@drawable/light_ic_action_settings"
         android:orderInCategory="2"
-        android:title="Settings"
-        app:showAsAction="always" />
+        android:title="Instillinger"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_bar_menu_sync"
         android:orderInCategory="1"
-        android:icon="@drawable/light_ic_action_refresh"
-        android:title="Sync"
-        app:showAsAction="always" />
+        android:title="Synkroniser"
+        app:showAsAction="never" />
 
 </menu>
