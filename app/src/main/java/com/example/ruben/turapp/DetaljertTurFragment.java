@@ -28,6 +28,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.ruben.turapp.bitmap.BitmapConverter;
+import com.example.ruben.turapp.restklient.GetResponseCallback;
+import com.example.ruben.turapp.restklient.NetworkHelper;
+import com.example.ruben.turapp.restklient.RestApi;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -47,6 +51,9 @@ import com.google.android.gms.location.LocationListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
@@ -133,18 +140,88 @@ public class DetaljertTurFragment extends Fragment implements OnMapReadyCallback
         tvMoh.setText(mTur.getMoh() + "");
 
 
-        // TODO: hvordan fange unntakstilfelle ved at bildet ikke blir vist?
-        // TODO: Skaler bitmap etter skjermen
         // Dekoder den gitte bildeURI og lager et Bitmap som vises.
         ivBilde = (ImageView) fragment.findViewById(R.id.fragment_detaljert_tur_bilde);
-        Bitmap bilde = BitmapFactory.decodeFile(mTur.getBilde());
-        ivBilde.setImageBitmap(bilde);
+        hentBilde(mTur.getBilde());
+
 
         // Henter zoom faktor fra settings
         SharedPreferences mSettings = getActivity().getPreferences(Context.MODE_PRIVATE);
         zoomFaktor = mSettings.getInt("ZoomFaktor", 10);
 
         return fragment;
+    }
+
+    private void hentBilde(String filsti) {
+        /*
+        * Cases:
+        *   1. Bilde er lokalt på telefon
+        *   2. Bilde er online og må lastes ned
+        *   3. Det er ikke noe bilde
+         */
+
+        Bitmap bilde = null;
+
+        // Sjekker om input er en URL
+        if (erGyldidUrl(filsti)) {
+            // Last ned bilde og display
+            Log.v("DetaljertTurFrag", "Gyldig url= " + filsti);
+            hentBildeFraUrl(filsti);
+        }
+        else if (erLokaltBilde(filsti)) {
+            // Display lokalt bilde
+            Log.v("DetaljertTurFrag", "Gyldig lokalt bilde= " + filsti);
+            settBilde(BitmapFactory.decodeFile(filsti));
+        }
+        else {
+            Log.v("DetaljertTurFrag", "None of the above= " + filsti);
+            // Stien er ikke noen gyldig form
+            // TODO: Snackbar, ikke noe gyldig bilde å vise
+        }
+
+
+
+
+
+    }
+
+    // Sjekker om en gitt String er en gyldig url, men sjekker ikke om filen finnes online
+    private boolean erGyldidUrl(String filsti) {
+        try {
+            URL filstiOnline = new URL(filsti);
+            return true;
+        } catch (MalformedURLException e) {
+            // Ikke gyldig url
+            return false;
+        }
+    }
+
+    // Sjekker om filstien er et lokalt bilde på telefon
+    private boolean erLokaltBilde(String filsti) {
+        Bitmap bilde = BitmapFactory.decodeFile(mTur.getBilde());
+        return bilde != null;
+    }
+
+    // Henter et Bitmap fra en gyldig URL
+    private void hentBildeFraUrl(String filsti) {
+        NetworkHelper helper = new NetworkHelper(mContext);
+        if (helper.isOnline()) {
+            RestApi api = new RestApi();
+            api.hentBilde(new GetResponseCallback() {
+                @Override
+                public void onDataReceived(String item) {
+                    settBilde(BitmapConverter.stringTilBitmap(item));
+                }
+            }, filsti);
+        }
+        else {
+            // TODO: Snackbar, ikke nettverkstilgang
+        }
+    }
+
+    private void settBilde(Bitmap bilde) {
+        ivBilde.setImageBitmap(bilde);
+        // TODO: skaler
     }
 
     @Override

@@ -1,11 +1,18 @@
 package com.example.ruben.turapp.restklient;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.ruben.turapp.bitmap.BitmapConverter;
 
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -96,7 +103,7 @@ public class RestKlient {
                 connection.setDoOutput(true);
                 connection.setChunkedStreamingMode(0);
                 connection.setRequestMethod(POST);
-                connection.setRequestProperty("Content-Type","application/json; charset=UTF-8");
+                connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 connection.connect();
 
                 OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
@@ -114,6 +121,7 @@ public class RestKlient {
                     response = builder.toString();
                 }
 
+
             } catch (MalformedURLException e) {
                 // TODO: snackbar feil url
             } catch (IOException e) {
@@ -129,6 +137,49 @@ public class RestKlient {
         protected void onPostExecute(String result) {
             mCallback.onTaskComplete(result);
             super.onPostExecute(result);
+        }
+    }
+
+    static class HentBilde extends AsyncTask<String, String, Bitmap> {
+
+        private String mFilsti;
+        private RestTaskCallback mCallback;
+
+        HentBilde(String filsti, RestTaskCallback callback) {
+            mFilsti = filsti;
+            mCallback = callback;
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+            Bitmap bilde = null;
+            HttpURLConnection connection = null;
+            try {
+                URL filUrl = new URL(mFilsti);
+                connection = (HttpURLConnection) filUrl.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+
+                int status = connection.getResponseCode();
+                if (status == HttpURLConnection.HTTP_OK) {
+                    InputStream is = connection.getInputStream();
+                    bilde = BitmapFactory.decodeStream(is);
+                }
+
+
+            } catch (IOException e) {
+                return null;
+            } finally {
+                assert connection != null;
+                connection.disconnect();
+            }
+            return bilde;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bilde) {
+            mCallback.onTaskComplete(BitmapConverter.bitmapTilString(bilde));
+            super.onPostExecute(bilde);
         }
     }
 

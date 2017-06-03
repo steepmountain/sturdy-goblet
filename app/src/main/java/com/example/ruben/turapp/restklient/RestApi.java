@@ -1,6 +1,7 @@
 package com.example.ruben.turapp.restklient;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -38,6 +39,10 @@ public class RestApi {
         doExecuteInsertCall(callback, restUrl, toInsert);
     }
 
+    public void hentBilde(GetResponseCallback callback, String filsti) {
+        doExecuteGetCall(callback, filsti);
+    }
+
     private void doExecuteGetCall(final GetResponseCallback callback, String restUrl) {
         new RestKlient.GetTask(restUrl, new RestKlient.RestTaskCallback() {
             @Override
@@ -47,7 +52,16 @@ public class RestApi {
         }).execute(restUrl);
     }
 
-    private void doExecuteInsertCall(final GetResponseCallback callback, String restUrl, JSONObject toInsert) {
+    private void doExecuteBildeCall(final GetResponseCallback callback, String result, String filsti) {
+        new RestKlient.HentBilde(filsti, new RestKlient.RestTaskCallback() {
+            @Override
+            public void onTaskComplete(String result) {
+                callback.onDataReceived(result);
+            }
+        }).execute(filsti);
+    }
+
+    private void doExecuteInsertCall(final GetResponseCallback callback, final String restUrl, JSONObject toInsert) {
         new RestKlient.InsertTask(restUrl, new RestKlient.RestTaskCallback() {
             @Override
             public void onTaskComplete(String result) {

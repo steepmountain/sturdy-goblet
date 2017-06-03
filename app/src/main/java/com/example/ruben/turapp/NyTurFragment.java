@@ -7,9 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -31,11 +33,17 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
+import com.example.ruben.turapp.database.DatabaseSynk;
 import com.example.ruben.turapp.database.TurDbAdapter;
+import com.example.ruben.turapp.restklient.NetworkHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -224,6 +232,11 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
 
         // håndterer filvelger
         if (requestCode == VELG_BILDE_REQUEST_CODE && resultCode == ACTIVITY_RESULT_OK) {
+
+
+            // Følg stackexchange her
+
+
             if (data != null) {
                 // TODO: Få path i samme form som kamera
                 mBildePath = data.getData().getPath();
@@ -284,9 +297,6 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
             error = true;
         }
 
-        // TODO: putt tilbake
-        // TODO: fil finnes ikke? Sjekk dette ut seinere !tmp.exists
-        // Er i form av String. BLi Uri, decode Bitmap fra Uri
         // Sjekker om bildepath er gyldig
         if (mBildePath == null || mBildePath.isEmpty()) {
             Snackbar.make(rootView, BILDE_UGYLDIG_MELDING, Snackbar.LENGTH_LONG).show();
@@ -305,7 +315,6 @@ public class NyTurFragment extends Fragment implements GoogleApiClient.OnConnect
         if (!error) {
             // Lager databaseobjekt, turobjekt og åpner
             Tur nyTur = new Tur(navn, beskrivelse, latitude, longitude, moh, turType, mBildePath, registrant);
-            Log.v("NyTurFrag", nyTur.toString());
             TurDbAdapter turDbAdapter = new TurDbAdapter(mContext);
             turDbAdapter.open();
 

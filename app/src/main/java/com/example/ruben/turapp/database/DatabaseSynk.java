@@ -56,6 +56,4 @@ public class DatabaseSynk {
         cursor.close();
         return resultArray;
     }
-
-
 }

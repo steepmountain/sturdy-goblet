@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -40,16 +39,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /*
-        * 4. Sjekk at mBildePath eksisterer i minnet
         * 7. Legg med SQL scirpt
         * ListView loader ikke før posisjon er ferdig
-        * 8. Laste opp/ned bilde
         *  8. STtopp at man kan klikke Back fra første fragment
         *  Gjør Instillinger fint.
         *  Bedre håndtering av permissions
+        * Bruk retur-verdi fra RESTKlient korrekt.
+        *  Hvis online, instant-synk NyTur
         *
-        *  java.lang.NullPointerException: Attempt to invoke virtual method 'java.util.Iterator java.util.ArrayList.iterator()' on a null object reference
-        *  Sjekk om appen er koblet til nettet ved launch!
+        *  FIX
+        *  NyTur med bildeinfo > instillinger > tilbake til info gir gyldig input, men viser ikke riktig bilde.
+        *  DetaljertTur - > scrollviw for å se om online lnks ender opp lenger nede
+        *  Bilder må roterers riktig
+        *  Hvordan hente
+        *  DetaljertTur. Tab view for info -> kart -> bilde?
+        *  rotasjon av hele appen må fungere
+        *  Alle sider skal ha TITTEL
+        *  Riktig addToBackStack
         */
 
         // Ber om permissions for Coarse og Fine locations, og Internet

@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.example.ruben.turapp.Tur;
 
@@ -103,9 +104,10 @@ public class TurDbAdapter {
     }
 
     // Read-metode for en enkelt tur
-    public Cursor hentTur(int turId) {
-        String[] selectionArgs = {String.valueOf(turId)};
-        return mDb.query(TUR_TABLE, TUR_FIELDS, TID, selectionArgs, null, null, null);
+    public Cursor hentTur(long turId) {
+        String whereClause = TID + " = ?";
+        String[] whereArgs = {String.valueOf(turId)};
+        return mDb.query(TUR_TABLE, TUR_FIELDS, whereClause, whereArgs, null, null, null);
     }
 
     // Read-metode for alle turer
@@ -113,7 +115,7 @@ public class TurDbAdapter {
         return mDb.query(TUR_TABLE, TUR_FIELDS, null, null, null, null, null);
     }
 
-    public boolean slettTur(int turId) {
+    public boolean slettTur(long turId) {
         String[] selectionArgs = {String.valueOf(turId)};
         return mDb.delete(TUR_TABLE, TID + "=?",selectionArgs ) > 0;
     }
