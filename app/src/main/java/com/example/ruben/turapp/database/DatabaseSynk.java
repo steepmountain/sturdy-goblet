@@ -1,8 +1,6 @@
 package com.example.ruben.turapp.database;
 
 import android.database.Cursor;
-import android.util.Log;
-
 import com.example.ruben.turapp.restklient.GetResponseCallback;
 import com.example.ruben.turapp.restklient.RestApi;
 
@@ -11,9 +9,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by Ruben on 01.06.2017.
+ * Klasse som har ansvar for å ta data fra SQLite-databasen og gjøre det til JSON-objekt.
  */
-
 public class DatabaseSynk {
 
     private TurDbAdapter mTurDbAdapter;
@@ -22,8 +19,12 @@ public class DatabaseSynk {
         mTurDbAdapter = turDbAdapter;
     }
 
-    // Sender et JSONObjekt til MySQL-databasen. Hvis sukkess fjernes den fra SQLite databasen
+    /**
+     * Sender en JSON-rad til RestAPI for Insert
+     * @param turRad en enkelt rad fra SQLite-databasen
+     */
     public void send(JSONObject turRad) throws JSONException {
+        // Sender inn et Tur-objekt til online database og sletter det fra SQLite-database
         final int nøkkel = turRad.getInt(TurDbAdapter.TID);
         RestApi api = new RestApi();
         api.settInnTur(new GetResponseCallback() {
@@ -34,20 +35,22 @@ public class DatabaseSynk {
         }, turRad);
     }
 
-    // Gjør om et Cursor-objekt til et JSONArray
-    public JSONArray cursorTilJSONArray(Cursor cursor) {
+    /**
+     * Gjør om en enkelt Cursor-spørring til JSONArray
+     * @param cursor Cursor fra SQLite-database
+     * @return et JSONArray av Cursor-spørringen
+     */
+    public JSONArray cursorTilJSONArray(Cursor cursor) throws JSONException {
         JSONArray resultArray = new JSONArray();
         cursor.moveToFirst();
+
+        // KIkker gjennom hver rad i Cursor-objektet og putter det i JSONObject som går inn i JSONArray hvis gyldi
         while (!cursor.isAfterLast()) {
             int antKolonner = cursor.getColumnCount();
             JSONObject rad = new JSONObject();
             for (int i = 0; i < antKolonner; i++) {
                 if (cursor.getColumnName(i) != null) {
-                    try {
                         rad.put(cursor.getColumnName(i), cursor.getString(i));
-                    } catch (JSONException e) {
-                        // TODO: returner med feilmelding
-                    }
                 }
             }
             resultArray.put(rad);

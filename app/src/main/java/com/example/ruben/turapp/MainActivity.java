@@ -22,16 +22,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * MainActivity som styrer alle fragmentene i appen.
+ */
 public class MainActivity extends AppCompatActivity {
 
-    // Request-koder for permissions
+    // Statiske variabler og meldinger for appen.
     public static final int REQUEST_CODE_FINE_LOCATION = 0;
     public static final int REQUEST_CODE_COARSE_LOCATION = 1;
     public static final int REQUEST_CODE_INTERNET = 2;
     public static final String FILE_PROVIDER_AUTHORITY = "com.example.android.fileprovider";
-    public static final String INGEN_NETTVERK_MELDING = "Ingen nettverkstilgang, kunne ikke synkronisere";
     public static final String TOM_DATABASE_MELDING = "Ingen innlegg å synkronisere.";
     public static final String RADER_SYNKRONISERT_MELDING = " rad(er) synkronisert.";
+    public static final String POSISJON_LAT_TEKST = "Breddegrad: ";
+    public static final String POSISJON_LNG_TEKST = "Lengdegrad: ";
+    public static final String POSISJON_MOH_TEKST = "Moh.: ";
+    public static String JSON_FEIL_MELDING = "Noe gikk galt med overføringen av data.";
+
+    private static String INGEN_NETTVERK_MELDING = "Ingen nettverksforbindelse, kunne ikke synkronisere.";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,28 +47,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /*
-        *  MUST DO
-        *  TurListe -> Stiler teksten som NyTur
-        *  DetaljertTur - > Implementer bildevisning fra NyTur
-        *  DetaljertTur -> Stiler teksten som NyTur.
-        *  InstillingerFragment -> Stiler
-        *  NyTur -> Bilde må ta høyde for padding/margin ved size.
-        *           -> Fix: variabler for padding/margin og ta disse vekk ved utregning av størrelse
         *
-        *
-        *  Rotasjon av hele appen må fungere
-        *  Alle sider skal ha TITTEL
-        *  Riktig addToBackStack for første fragment etter Activity
         *  Legg ved SQL-skript
-        *  Scrap filepicker
-        *  Fjern alle unødvendige filer fra res
-        *  Gjør alle kommentarer norske
-        *  Gjør alle variabler norske
-        *  Gå gjennom todo
+
         *  Lage skjermbilder
-        *  MAYBE
-        *  Permissions-håndtering i DetaljertTurFragment
-        */
+        *  */
+
 
         // Ber om permissions for Coarse og Fine locations, og Internet
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -74,34 +66,51 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.INTERNET}, REQUEST_CODE_INTERNET);
         }
 
-        Fragment fragment = new TurListeFragment();
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction().addToBackStack(null);
-        transaction.replace(R.id.activity_main_content_fragment, fragment);
-        transaction.commit();
+        // Sjekker om det er en savedInstanceState i minnet
+        if (savedInstanceState == null) {
+
+            // Hvis ingen savedInstance, åpne default fragment
+            Fragment fragment = new TurListeFragment();
+            FragmentManager fm = getSupportFragmentManager();
+            FragmentTransaction transaction = fm.beginTransaction();
+            transaction.replace(R.id.activity_main_content_fragment, fragment);
+            transaction.commit();
+        } else {
+            // Åpne savedInstance fragment
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag(savedInstanceState.getString("TAG"));
+        }
+
+
     }
 
-    // Lager menyen til action bar
+    /**
+     * Lager menyen til ActionBar
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.action_bar_menu, menu);
         return true;
     }
 
-    // Håndterer meny actions
+    /**
+     * Håndterer input på menyen
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch (item.getItemId()) {
+
+            // Synkroniser
             case R.id.action_bar_menu_sync:
                 try {
+                    // Prøv å synkroniser lokal SQLite-database med online MySQL-database
                     synkroniserDatabaser();
                 } catch (JSONException e) {
-                    // TODO: static final feilmelding
-                    Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), "Noe gikk galt med overføringen av data!", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), JSON_FEIL_MELDING, Snackbar.LENGTH_LONG).show();
                 }
                 return true;
 
-
+            // Åpne settings
             case R.id.action_bar_menu_settings:
                 Fragment fragment = new InstillingerFragment();
                 FragmentManager fm = getSupportFragmentManager();
@@ -116,17 +125,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Kaller på et DatabaseSynk-objekt som gjør om spørringen av DB i fra Cursor til JSON og prøver å sende det til online DB.
+    /**
+     * Prøver å synkronsiere lokal database med online database
+     */
     private void synkroniserDatabaser() throws JSONException {
 
+        // Sjekker om appen er online før den prøver å synkronisere
         NetworkHelper helper = new NetworkHelper(this);
         if (helper.isOnline()) {
+
+            // Starter et dbADapter
             TurDbAdapter turDbAdapter = new TurDbAdapter(getApplicationContext());
             turDbAdapter.open();
 
+            // Cursor-objekt som inneholder alle turer i lokal database
             Cursor alleTurer = turDbAdapter.hentAlleTurer();
             int antallRader = alleTurer.getCount();
             if (antallRader > 0) {
+
+                // Synker hver rad i Cursor
                 DatabaseSynk dbSynk = new DatabaseSynk(turDbAdapter);
                 JSONArray alleRader = dbSynk.cursorTilJSONArray(alleTurer);
                 for (int i = 0; i < antallRader; i++) {
@@ -134,16 +151,13 @@ public class MainActivity extends AppCompatActivity {
                     dbSynk.send(rad);
                 }
                 Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), antallRader + RADER_SYNKRONISERT_MELDING, Snackbar.LENGTH_LONG).show();
-            }
-            else {
+            } else {
                 // Ingen rader å synkronisere
                 Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), TOM_DATABASE_MELDING, Snackbar.LENGTH_LONG).show();
             }
-        }
-        else {
+        } else {
             // Ingen nettverksforbindelse, ikke prøv å synkronisere
-            Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), "Ingen nettverkstilgang, kunne ikke synkronisere.", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(getWindow().getDecorView().findViewById(android.R.id.content), INGEN_NETTVERK_MELDING, Snackbar.LENGTH_LONG).show();
         }
     }
-
 }

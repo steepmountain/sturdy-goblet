@@ -6,15 +6,13 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.example.ruben.turapp.Tur;
 
 
 /**
- * Created by Ruben on 30.05.2017.
+ * Databaseadapter for SQLite-databasen lokalt i applikasjonen
  */
-
 public class TurDbAdapter {
 
     private DatabaseHjelper mDbHjelper;
@@ -25,25 +23,32 @@ public class TurDbAdapter {
         mContext = context;
     }
 
-    // Åpner databasen med hjelperen
+    /**
+     * Åpner koblingen til SQLite-databasen ved hjelp av en Databasehjelper
+     * @return en brukende TurDbAdapter
+     */
     public TurDbAdapter open() throws SQLException {
         mDbHjelper = new DatabaseHjelper(mContext);
         mDb = mDbHjelper.getWritableDatabase();
         return this;
     }
 
-    // Lukker databasen med hjelperen
+    /**
+     * Lukker databasen ved hjelp av DatabaseHjelper
+     */
     public void close() {
         if (mDbHjelper != null) {
             mDbHjelper.close();
         }
     }
 
-    // Oppgraderer databasen til ny versjon
+    /**
+     * Oppgraderer SQLite-databasen til en ny versjon
+     */
     public void upgrade() throws SQLException {
         mDbHjelper = new DatabaseHjelper(mContext);
         mDb = mDbHjelper.getWritableDatabase();
-        mDbHjelper.onUpgrade(mDb, 1, 0); // TODO: andre verdier?
+        mDbHjelper.onUpgrade(mDb, 1, 0);
     }
 
     // Databasevariabler for SQLite
@@ -71,7 +76,9 @@ public class TurDbAdapter {
             REGISTRANT
     };
 
-    // SQL for å opprette databasen
+    /**
+     * Create-query for å opprette SQLite-tabellen for Tur
+     */
     private static final String CREATE_TUR_TABLE =
             "create table " + TUR_TABLE + "("
                     + TID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -85,11 +92,12 @@ public class TurDbAdapter {
                     + REGISTRANT + " TEXT NOT NULL"
                     + ");";
 
-    // Create-metode for tur
-    public long nyTur(ContentValues initialValues) {
-        return mDb.insertWithOnConflict(TUR_TABLE, null, initialValues, SQLiteDatabase.CONFLICT_IGNORE);
-    }
 
+    /**
+     * Query for å sette inn en enkelt tur i SQLite-databasen
+     * @param nyTur Tur-objekt for input
+     * @return en insertID i form av long
+     */
     public long nyTur(Tur nyTur) {
         ContentValues newValues = new ContentValues();
         newValues.put(TurDbAdapter.NAVN, nyTur.getNavn());
@@ -103,30 +111,36 @@ public class TurDbAdapter {
         return mDb.insertWithOnConflict(TUR_TABLE, null, newValues, SQLiteDatabase.CONFLICT_IGNORE);
     }
 
-    // Read-metode for en enkelt tur
-    public Cursor hentTur(long turId) {
-        String whereClause = TID + " = ?";
-        String[] whereArgs = {String.valueOf(turId)};
-        return mDb.query(TUR_TABLE, TUR_FIELDS, whereClause, whereArgs, null, null, null);
-    }
-
-    // Read-metode for alle turer
+    /**
+     * Select-query for å få tilbake alle turer i databasen
+     * @return et Cursor-objekt med alle radene i databasen
+     */
     public Cursor hentAlleTurer() {
         return mDb.query(TUR_TABLE, TUR_FIELDS, null, null, null, null, null);
     }
 
-    public boolean slettTur(long turId) {
+    /**
+     * Sletter en tur fra databasen gitt turId
+     * @param turId TurID til Turen som skal slettes
+     * @return true hvis slettingen var vellykket, false hvis ikke
+     */
+    boolean slettTur(long turId) {
         String[] selectionArgs = {String.valueOf(turId)};
         return mDb.delete(TUR_TABLE, TID + "=?",selectionArgs ) > 0;
     }
 
-    // Omgjør en Cursor om til et Tur-objekt
+    /**
+     * Gjør om en Cursor til et Tur-objekt
+     * @param cursor Cursor som skal bli gjort om til tur
+     * @return Tur-objektet fra den gitte Cursor
+     */
     public static Tur cursorToTur(Cursor cursor) {
         Tur tur = new Tur();
         tur.setNavn(cursor.getString(cursor.getColumnIndex(NAVN)));
         tur.setBeskrivelse(cursor.getString(cursor.getColumnIndex(BESKRIVELSE)));
         tur.setLatitude(cursor.getFloat(cursor.getColumnIndex(LATITUDE)));
         tur.setLongitude(cursor.getFloat(cursor.getColumnIndex(LONGITUTDE)));
+        tur.setMoh(cursor.getInt(cursor.getColumnIndex(MOH)));
         tur.setType(cursor.getString(cursor.getColumnIndex(TURTYPE)));
         tur.setBilde(cursor.getString(cursor.getColumnIndex(TURBILDE)));
         tur.setRegistrant(cursor.getString(cursor.getColumnIndex(REGISTRANT)));
@@ -134,12 +148,14 @@ public class TurDbAdapter {
     }
 
 
-    // Indre klasse for opprettelse av DB
+    /**
+     * Indre klasse for å hjelpe med opprettelsen av Databasen
+     */
     private static class DatabaseHjelper extends SQLiteOpenHelper {
 
         SQLiteDatabase mDb;
 
-        public DatabaseHjelper(Context context) {
+        private DatabaseHjelper(Context context) {
             super(context, DB_NAVN, null, DB_VERSJON);
         }
 

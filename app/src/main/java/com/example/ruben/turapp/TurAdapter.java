@@ -7,17 +7,17 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-
 import java.util.ArrayList;
 
 /**
- * Created by Ruben on 29.05.2017.
+ * Adapter-klasse for å vise Turer i en ListView
  */
-
 public class TurAdapter extends BaseAdapter {
 
     private static int MAX_BESKRIVELSE = 150;
     private static String ELLIPSE = "...";
+    private static int KM = 1000;
+    private static int MIL = 10000;
 
     private Context mContext;
     private ArrayList<Tur> mTur;
@@ -54,9 +54,7 @@ public class TurAdapter extends BaseAdapter {
             vh.tvNavn = (TextView) view.findViewById(R.id.tur_item_tv_navn);
             vh.tvBeskrivelse = (TextView) view.findViewById(R.id.tur_item_tv_beskrivelse);
             vh.tvType = (TextView) view.findViewById(R.id.tur_item_tv_type);
-            vh.tvLatitude = (TextView) view.findViewById(R.id.tur_item_tv_latitude);
-            vh.tvLongitude = (TextView) view.findViewById(R.id.tur_item_tv_longitude);
-            vh.tvMoh = (TextView) view.findViewById(R.id.tur_item_tv_moh);
+            vh.tvDistanse = (TextView) view.findViewById(R.id.tur_item_tv_distanse);
 
             view.setTag(vh);
         }
@@ -64,35 +62,57 @@ public class TurAdapter extends BaseAdapter {
             vh = (ViewHolder) view.getTag();
         }
 
-        // Henter current Tur
+        // Henter all informasjon fra den gitte turen
         Tur item = mTur.get(i);
         vh.tvNavn.setText(item.getNavn());
-
-        // Todo: formater tekst til 10km, 5,5km, 1000m, etc
-        String typeOgDistanse = item.getType() + " " + item.getDistanseTil() + " meter unna.";
-        vh.tvType.setText(typeOgDistanse);
+        vh.tvType.setText(item.getType());
 
         // Viser kun 150 første tegn av en beskrivelse
-        String txtBeskrivelse = item.getBeskrivelse();
+        String beskrivelseTekst = item.getBeskrivelse();
         if (item.getBeskrivelse().length() > MAX_BESKRIVELSE) {
-            txtBeskrivelse = txtBeskrivelse.substring(0, MAX_BESKRIVELSE-1) + ELLIPSE;
+            beskrivelseTekst = beskrivelseTekst.substring(0, MAX_BESKRIVELSE-1) + ELLIPSE;
         }
-        vh.tvBeskrivelse.setText(txtBeskrivelse);
+        vh.tvBeskrivelse.setText(beskrivelseTekst);
 
-        vh.tvLatitude.setText(item.getLatitude() + "");
-        vh.tvLongitude.setText(item.getLongitude() + "");
-        vh.tvMoh.setText(item.getMoh() + "");
+        vh.tvDistanse.setText(formaterDistanse(item.getDistanseTil()));
 
         return view;
+    }
+
+    /**
+     * Formaterer distanseteksten basert på lengde og lesbarhet
+     * @param distanse distansen til turmålet
+     * @return en strenge med formatert tekst
+     */
+    private String formaterDistanse(int distanse) {
+
+        // Hvis distansen unnen 1km, hvis i meter
+        if (distanse < KM) {
+            return distanse + " meter unna.";
+        }
+
+        // Hvis distance under en mil men over 1km, hvis i km
+        else if (distanse < MIL) {
+            // Gjør om til double med en desimaplass
+            double distanseDouble = (double) distanse/KM;
+            double avrundetDistanse = (double) Math.round((distanseDouble) * 10) / 10;
+            return avrundetDistanse + " km unna.";
+        }
+
+        // Hvis over en mil, vis i mil
+        else {
+            // Gjør om til double med en desimalplass
+            double distanseDouble = (double) distanse/MIL;
+            double avrundetDistanse = (double) Math.round((distanseDouble) * 10) / 10;
+            return avrundetDistanse  + " mil unna";
+        }
     }
 
     protected static class ViewHolder {
         TextView tvNavn;
         TextView tvBeskrivelse;
         TextView tvType;
-        TextView tvLatitude;
-        TextView tvLongitude;
-        TextView tvMoh;
+        TextView tvDistanse;
 
     }
 }

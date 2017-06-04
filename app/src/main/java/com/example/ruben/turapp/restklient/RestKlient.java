@@ -4,8 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
-import com.example.ruben.turapp.bitmap.BitmapHelper;
-
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -17,17 +15,19 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+
 /**
- * Created by Ruben on 31.05.2017.
+ * Model-nivå klasse som skal håndtere direkte kontakt med PHP API
+ * Klassen er direkte importert fra min tidligere oppgave i Applikasjonsutvikling
  */
-
-// TODO: kode er gjenbrukt fra oblig
-
 public class RestKlient {
 
     private static String POST = "POST";
 
-    static class GetTask extends AsyncTask<String, String, String> {
+    /**
+     * Klasse for håndtering av asynkrone Get-oppgaver.
+     */
+    static class GetTask extends AsyncTask<String, Void, String> {
 
         private String mRestUrl;
         private RestTaskCallback mCallback;
@@ -37,10 +37,15 @@ public class RestKlient {
             mCallback = callback;
         }
 
+        /**
+         * Utfører bakgrunnsoppgaven for en Get-oppgave.
+         * @return Returnerer et rad-objekt fra den gitte REST-URL-en
+         */
         @Override
         protected String doInBackground(String... strings) {
             String response = null;
 
+            // Åpner Http-forbindelse
             HttpURLConnection connection = null;
             try {
                 URL restUrl = new URL(mRestUrl);
@@ -48,7 +53,10 @@ public class RestKlient {
                 connection.connect();
                 int status = connection.getResponseCode();
 
+                // Sjekker om status er OK før den tar input
                 if (status == HttpURLConnection.HTTP_OK) {
+
+                    // Bygger opp en strenge med Input-data
                     InputStream is = connection.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                     StringBuilder builder = new StringBuilder();
@@ -59,16 +67,22 @@ public class RestKlient {
                 }
 
             } catch (MalformedURLException e) {
-                // TODO: snackbar feil url
+                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
+                assert connection != null;
                 connection.disconnect();
             }
 
+            // Returner responsen fra Http-requests
             return response;
         }
 
+        /**
+         * Utfører onPostExecute etter at get-oppgaven er ferdig
+         * @param result resultet av get-oppgaven
+         */
         @Override
         protected void onPostExecute(String result) {
             mCallback.onTaskComplete(result);
@@ -76,7 +90,10 @@ public class RestKlient {
         }
     }
 
-    static class InsertTask extends AsyncTask<String, String, String> {
+    /**
+     * Klasse for håndtering av asynkrone Insert-oppgaver
+     */
+    static class InsertTask extends AsyncTask<String, Void, String> {
 
         private String mRestUrl;
         private RestTaskCallback mCallback;
@@ -88,11 +105,18 @@ public class RestKlient {
             mToInsert = toInsert;
         }
 
+        /**
+         * Utfører bakgrunnsoppgaven for en Insert-oppgave.
+         * @param strings
+         * @return Rad-nummeret til objektet som ble satt inn i databasen
+         */
         @Override
         protected String doInBackground(String... strings) {
             String response = null;
             HttpURLConnection connection = null;
             try {
+
+                // Åpner HTTP-forbindelse og gjør klar til å skrive et JSON-objekt
                 URL restUrl = new URL(mRestUrl);
                 connection = (HttpURLConnection) restUrl.openConnection();
                 connection.setDoInput(true);
@@ -102,12 +126,15 @@ public class RestKlient {
                 connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 connection.connect();
 
+                // Skriver til databasen
                 OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
                 out.write(mToInsert.toString());
                 out.close();
 
                 int status = connection.getResponseCode();
                 if (status == HttpURLConnection.HTTP_OK) {
+
+                    // Hvis sukksess, skriver radnummer tilbake
                     InputStream is = connection.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                     StringBuilder builder = new StringBuilder();
@@ -119,16 +146,22 @@ public class RestKlient {
 
 
             } catch (MalformedURLException e) {
-                // TODO: snackbar feil url
+                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 assert connection != null;
                 connection.disconnect();
             }
+
+            // Returnerer respons fra insert
             return response;
         }
 
+        /**
+         * Utfører onPostExecute-kallet med resultatet
+         * @param result resultet fra insert-oppgaven
+         */
         @Override
         protected void onPostExecute(String result) {
             mCallback.onTaskComplete(result);
@@ -136,49 +169,9 @@ public class RestKlient {
         }
     }
 
-    static class HentBilde extends AsyncTask<String, String, Bitmap> {
-
-        private String mFilsti;
-        private RestTaskCallback mCallback;
-
-        HentBilde(String filsti, RestTaskCallback callback) {
-            mFilsti = filsti;
-            mCallback = callback;
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... strings) {
-            Bitmap bilde = null;
-            HttpURLConnection connection = null;
-            try {
-                URL filUrl = new URL(mFilsti);
-                connection = (HttpURLConnection) filUrl.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-
-                int status = connection.getResponseCode();
-                if (status == HttpURLConnection.HTTP_OK) {
-                    InputStream is = connection.getInputStream();
-                    bilde = BitmapFactory.decodeStream(is);
-                }
-
-
-            } catch (IOException e) {
-                return null;
-            } finally {
-                assert connection != null;
-                connection.disconnect();
-            }
-            return bilde;
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bilde) {
-            mCallback.onTaskComplete(BitmapHelper.bitmapTilString(bilde));
-            super.onPostExecute(bilde);
-        }
-    }
-
+    /**
+     * Abstrakt klasse for å bruke onTaskComplete i Get- og Insert-oppgavene
+     */
     abstract static class RestTaskCallback {
         public abstract void onTaskComplete(String result);
     }

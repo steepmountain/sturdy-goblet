@@ -9,14 +9,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 
 /**
- * Created by Ruben on 29.05.2017.
+ * Tur-klasse for å holde på informasjon om turer.
  */
-
 public class Tur implements Serializable {
 
     private String navn;
@@ -25,12 +23,11 @@ public class Tur implements Serializable {
     private float longitude;
     private int moh;
     private String type;
-    private String bilde; // URL referanse
+    private String bilde;
     private String registrant;
-
-    // Brukt for sortering i det grafiske
     private int distanseTil;
 
+    // Setters og getters
     public int getDistanseTil() {
         return distanseTil;
     }
@@ -38,7 +35,6 @@ public class Tur implements Serializable {
     public void setDistanseTil(int distanseTil) {
         this.distanseTil = distanseTil;
     }
-
 
     public String getNavn() {
         return navn;
@@ -108,7 +104,17 @@ public class Tur implements Serializable {
     public Tur() {
     }
 
-    // TODO: constructor that takes byte[] or blob for image
+    /**
+     * Default konstruktør for tur
+     * @param navn Turens navn
+     * @param beskrivelse beskrivelse av turen
+     * @param latitude latitude-verdi for turen
+     * @param longitude longtitude-verdi for turen
+     * @param moh hvor mange meter over havet turen er
+     * @param type fritekst type av tur
+     * @param bilde bilde-URI for turen
+     * @param registrant hvem registranten for turen er
+     */
     public Tur(String navn, String beskrivelse, float latitude, float longitude, int moh, String type, String bilde, String registrant) {
         this.navn = navn;
         this.beskrivelse = beskrivelse;
@@ -120,6 +126,10 @@ public class Tur implements Serializable {
         this.registrant = registrant;
     }
 
+    /**
+     * Konstruktfør for turen med JSONObjekt som input
+     * @param jsonTur JSONObjekt som inneholder turinformasjon
+     */
     public Tur(JSONObject jsonTur) {
         this.navn = jsonTur.optString(TurDbAdapter.NAVN);
         this.beskrivelse = jsonTur.optString(TurDbAdapter.BESKRIVELSE);
@@ -131,20 +141,26 @@ public class Tur implements Serializable {
         this.registrant = jsonTur.optString(TurDbAdapter.REGISTRANT);
     }
 
-    public static Tur getTurFromCursor(Cursor cursor) {
-        Tur t = new Tur();
-        t.navn = cursor.getString(cursor.getColumnIndex(TurDbAdapter.NAVN));
-        t.beskrivelse = cursor.getString(cursor.getColumnIndex(TurDbAdapter.BESKRIVELSE));
-        t.latitude = cursor.getFloat(cursor.getColumnIndex(TurDbAdapter.LATITUDE));
-        t.longitude = cursor.getFloat(cursor.getColumnIndex(TurDbAdapter.LONGITUTDE));
-        t.moh = cursor.getInt(cursor.getColumnIndex(TurDbAdapter.MOH));
-        t.type = cursor.getString(cursor.getColumnIndex(TurDbAdapter.TURTYPE));
-        t.bilde = cursor.getString(cursor.getColumnIndex(TurDbAdapter.TURBILDE));
-        t.registrant = cursor.getString(cursor.getColumnIndex(TurDbAdapter.REGISTRANT));
-
-        return t;
+    /**
+     * Konstruktør som tar inn Cursor-objekt
+     * @param cursor Cursor som inneholder tur-informasjon
+     */
+    public Tur(Cursor cursor) {
+        this.navn = cursor.getString(cursor.getColumnIndex(TurDbAdapter.NAVN));
+        this.beskrivelse = cursor.getString(cursor.getColumnIndex(TurDbAdapter.BESKRIVELSE));
+        this.latitude = cursor.getFloat(cursor.getColumnIndex(TurDbAdapter.LATITUDE));
+        this.longitude = cursor.getFloat(cursor.getColumnIndex(TurDbAdapter.LONGITUTDE));
+        this.moh = cursor.getInt(cursor.getColumnIndex(TurDbAdapter.MOH));
+        this.type = cursor.getString(cursor.getColumnIndex(TurDbAdapter.TURTYPE));
+        this.bilde = cursor.getString(cursor.getColumnIndex(TurDbAdapter.TURBILDE));
+        this.registrant = cursor.getString(cursor.getColumnIndex(TurDbAdapter.REGISTRANT));
     }
 
+    /**
+     * Lager en ArrayList av turer basert på JSONObjekt
+     * @param jsonString JSONObjektet som inneholder turer
+     * @return ArrayList av turer
+     */
     public static ArrayList<Tur> lagTurListe(String jsonString) throws JSONException {
         ArrayList<Tur> turListe = new ArrayList<>();
         JSONObject jsonObj = new JSONObject(jsonString);
@@ -171,6 +187,9 @@ public class Tur implements Serializable {
                 '}';
     }
 
+    /**
+     * Indre komparator for å sortere turer basert på distanse fra en brukers nåværende posisjon
+     */
     public static Comparator<Tur> DistanseComparator = new Comparator<Tur>() {
         @Override
         public int compare(Tur tur, Tur t1) {

@@ -1,43 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="6dp">
+    android:padding="10dp">
 
     <TextView
         android:id="@+id/tur_item_tv_navn"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="@android:style/TextAppearance.Material.Headline"/>
+        android:textAppearance="@android:style/TextAppearance.Material.Headline" />
+
+    <TextView
+        android:id="@+id/tur_item_tv_distanse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:textAppearance="@android:style/TextAppearance.Material.Small" />
+
 
     <TextView
         android:id="@+id/tur_item_tv_type"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:textAppearance="@android:style/TextAppearance.Material.Body1"/>
+        android:layout_below="@id/tur_item_tv_navn"
+        android:textAppearance="@android:style/TextAppearance.Material.Subhead" />
 
     <TextView
         android:id="@+id/tur_item_tv_beskrivelse"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:textAppearance="@android:style/TextAppearance.Material.Body1"/>
+        android:layout_below="@id/tur_item_tv_type"
+        android:textAppearance="@android:style/TextAppearance.Material.Body1" />
 
-    <TextView
-        android:id="@+id/tur_item_tv_latitude"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:textAppearance="@android:style/TextAppearance.Material.Body1"/>
 
-    <TextView
-        android:id="@+id/tur_item_tv_longitude"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:textAppearance="@android:style/TextAppearance.Material.Body1"/>
-
-    <TextView
-        android:id="@+id/tur_item_tv_moh"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:textAppearance="@android:style/TextAppearance.Material.Body1"/>
-
-</LinearLayout>
+</RelativeLayout>

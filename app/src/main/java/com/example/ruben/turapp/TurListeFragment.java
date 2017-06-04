@@ -14,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.design.widget.FloatingActionButton;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,10 +32,12 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-
+/**
+ * Fragment for å holde på en ListView av alle Tur-objekt hentet fra MySQL-databasen
+ */
 public class TurListeFragment extends Fragment implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
-    private ListView mListView; // TODO: better name
+    private ListView mListView;
     private ArrayList<Tur> mTurListe;
     private TurAdapter mAdapter;
     private Location mSistePosisjon;
@@ -44,6 +45,9 @@ public class TurListeFragment extends Fragment implements GoogleApiClient.OnConn
     private Context mContext;
     private Activity mActivity;
     private View rootView;
+
+    private static String INGEN_NETTVERKSTILKOBLING_MELDING = "Ingen nettverkstilkobling, kan ikke hente turer.";
+
 
     public TurListeFragment() {
         // Required empty public constructor
@@ -93,12 +97,18 @@ public class TurListeFragment extends Fragment implements GoogleApiClient.OnConn
                     try {
                         oppdaterTurListe(Tur.lagTurListe(item));
                     } catch (JSONException e) {
-                        // TODO: display error
+                        Snackbar.make(rootView, MainActivity.JSON_FEIL_MELDING, Snackbar.LENGTH_LONG).show();
                     }
                 }
             });
         }
         return fragment;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mContext = getActivity().getApplicationContext();
     }
 
     // Oppdaterer turlisten og sorterer den etter distanse fra brukerens nåværende pos
@@ -117,11 +127,12 @@ public class TurListeFragment extends Fragment implements GoogleApiClient.OnConn
                     turPosisjon.setAltitude(t.getMoh());
                     t.setDistanseTil((int) mSistePosisjon.distanceTo(turPosisjon));
                 }
+                // Sorterer listen basert på distanse fra brukers nåværende posisjon
                 Collections.sort(mTurListe, Tur.DistanseComparator);
             }
 
-
-            mAdapter = new TurAdapter(getActivity(), nyListe);
+            // Setter adapter til ListView
+            mAdapter = new TurAdapter(mContext, nyListe);
             mListView.setAdapter(mAdapter);
             mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -142,17 +153,25 @@ public class TurListeFragment extends Fragment implements GoogleApiClient.OnConn
         }
     }
 
+    /**
+     * Starter kartet når fragmentet starter
+     */
     public void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
     }
 
+    /**
+     * Stopper kartet når fragmentet stopper
+     */
     public void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
     }
 
-
+    /**
+     * Listener-metode som slår til når applikasjonen kobler seg opp til LocationCallback
+     */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // Sjekker om appen har permission til å bruke posisjon
@@ -163,19 +182,23 @@ public class TurListeFragment extends Fragment implements GoogleApiClient.OnConn
             if (helper.isOnline()) {
                 oppdaterTurListe(mTurListe);
             } else {
-                // TODO: static String message
-                Snackbar.make(rootView, "Ingen nettverk!", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(rootView, INGEN_NETTVERKSTILKOBLING_MELDING , Snackbar.LENGTH_LONG).show();
             }
 
         }
     }
 
-
+    /**
+     * Nødvendig override for ConnectionCallback
+     */
     @Override
     public void onConnectionSuspended(int i) {
 
     }
 
+    /**
+     * Nødvendig override for ConnectionCallback
+     */
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 

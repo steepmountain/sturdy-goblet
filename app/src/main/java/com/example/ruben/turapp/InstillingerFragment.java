@@ -7,14 +7,9 @@ import android.os.Bundle;
 import android.support.v7.preference.EditTextPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment for håndtering av instillinger
  */
 public class InstillingerFragment extends PreferenceFragmentCompat {
 
@@ -27,6 +22,9 @@ public class InstillingerFragment extends PreferenceFragmentCompat {
         // Required empty public constructor
     }
 
+    /**
+     * Nødvendig override-metode for PreferenceFragmentCompat
+     */
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
 
@@ -37,14 +35,19 @@ public class InstillingerFragment extends PreferenceFragmentCompat {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+         // Henter preferanselayout fra res/xml/preferences.xml
         addPreferencesFromResource(R.xml.preferences);
+
+        // SharedPreference-objekt for å skrive settings til
         mSettings = getActivity().getPreferences(Context.MODE_PRIVATE);
 
+        // EditTextPreference for "brukernavn"
         etpNavnPref = (EditTextPreference) findPreference("navn");
         etpNavnPref.setSummary(mSettings.getString("Navn", null));
         etpNavnPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
+                // Oppdaterer SharedPreference når preference forandrer seg
                 String nyNavn = (String) o;
                 SharedPreferences.Editor edit = mSettings.edit();
                 edit.putString("Navn", nyNavn);
@@ -55,11 +58,13 @@ public class InstillingerFragment extends PreferenceFragmentCompat {
         });
 
 
+        // EditTextPreference for zoomfaktor på Google Map i DetaljertFragment
         etpZoomPref = (EditTextPreference) findPreference("zoomFaktor");
         etpZoomPref.setSummary(mSettings.getInt("ZoomFaktor", 10) + "");
         etpZoomPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
+                // Oppdaterer SharedPreference når preference forandrer seg
                 int nyZoom = Integer.parseInt((String)o);
                 SharedPreferences.Editor edit = mSettings.edit();
                 edit.putInt("ZoomFaktor", nyZoom);
